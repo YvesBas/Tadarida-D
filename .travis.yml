@@ -1,0 +1,5 @@
+language: cpp
+before_install:
+ - sudo apt-get update && sudo apt-get install libfftw3-dev libsndfile1-dev libqt4-dev
+install: make
+script: ./tadaridaD test/waves

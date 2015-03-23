@@ -1724,7 +1724,7 @@ void Detec::saveParameters(const QString& wavFile)
 {
     _logText << "saveParameters  début  wavFile=" << wavFile << endl;
     int nbps = _vectPar.size();
-    _txtFilePath2 = _txtPath+"/"+wavFile.left(wavFile.length()-3)+"csv";
+    _txtFilePath2 = _txtPath+"/"+wavFile.left(wavFile.length()-3)+"ta";
     _txtFile2.setFileName(_txtFilePath2);
     if(_txtFile2.open(QIODevice::WriteOnly | QIODevice::Text)==false)
     {

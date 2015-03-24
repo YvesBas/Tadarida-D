@@ -21,10 +21,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    detec.cpp
+    detec.cpp \
+    detectreatment.cpp
 
 HEADERS += \
-    detec.h
+    detec.h \
+    detectreatment.h
 
 INCLUDEPATH += "C:/Program Files (x86)/Mega-Nerd/libsndfile/include" "Headers"
 

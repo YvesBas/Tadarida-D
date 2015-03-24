@@ -11,9 +11,9 @@ int main(int argc, char *argv[])
 {
     if(argc>1)
     {
-        Detec *detec = new Detec(QString(argv[1]));
+        Detec *detec = new Detec(argc, argv);
         detec->start();
-        while(detec->IsRunning == true) SLEEP(100);
+        while(detec->isRunning()) _sleep(100);
         delete detec;
     }
     return(0);

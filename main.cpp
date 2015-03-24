@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     {
         Detec *detec = new Detec(argc, argv);
         detec->start();
-        while(detec->isRunning()) _sleep(100);
+        while(detec->isRunning()) SLEEP(100);
         delete detec;
     }
     return(0);

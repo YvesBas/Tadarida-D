@@ -9,7 +9,7 @@
 #include <QFile>
 #include <QtCore/qmath.h>
 #include <QTextStream>
-#include <QProcess.h>
+#include <QProcess>
 
 #include <QVector>
 #include "sndfile.h"

@@ -2702,8 +2702,8 @@ void DetecTreatment::saveParameters(const QString& wavFile)
     fileStream.setDevice(&txtFile);
     fileStream.setRealNumberNotation(QTextStream::FixedNotation);
     fileStream.setRealNumberPrecision(2);
-    fileStream << "Filename"<< '\t' << "CallNum";
-               // << '\t' << "Version"<< '\t' << "FileDur"<< '\t' << "SampleRate";
+    fileStream << "Filename"<< '\t' << "CallNum"
+                << '\t' << "Version"<< '\t' << "FileDur"<< '\t' << "SampleRate";
     for(int j=0;j<_numberCallParameters;j++) fileStream << '\t' << _vectPar[j].ColumnTitle;
     fileStream << endl;
     //float **parArray;
@@ -2713,8 +2713,8 @@ void DetecTreatment::saveParameters(const QString& wavFile)
     for(int i=0;i<_callsNumber;i++)
     {
         float **callArray = _paramsArray[i];
-        fileStream << wavFile << '\t' << QString::number(i) ;
-                   // << '\t' << QString::number(_paramVersion) << '\t'  <<  dur << '\t' << sr;
+        fileStream << wavFile << '\t' << QString::number(i)
+                    << '\t' << QString::number(_paramVersion) << '\t'  <<  dur << '\t' << sr;
         for(int j=0;j<_numberCallParameters;j++)
         {
             //u_f = callArray[_vectPar[j].NumTableau][_vectPar[j].NumPar];

@@ -40,6 +40,7 @@ clean:
 	rm -f $(OBJ)
 	rm -f $(TARGET)
 	rm -f $(MOC_OBJ)
+	rm -rf tests/waves/txt
 
 test: all
 	./$(TARGET) tests/waves

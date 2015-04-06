@@ -1,10 +1,10 @@
 #include "detec.h"
 
 #ifdef _WIN32
-# define SLEEP _sleep
+# define SLEEP(time) _sleep(time)
 #else
 # include <unistd.h>
-# define SLEEP sleep
+# define SLEEP(time) usleep(time * 1000)
 #endif
 
 int main(int argc, char *argv[])

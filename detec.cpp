@@ -1,67 +1,24 @@
 #include "detec.h"
 #include "detectreatment.h"
-#define PARAMNO 0
-#define PARAMEXPANSION 1
-#define PARAMCOMPRESS 2
-#define PARAMHELP 3
 
 using namespace std;
 
 
-Detec::Detec(int argc,char **argv): QThread()
+Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QString wavPath,QStringList wavFileList,QStringList wavRepList,int timeExpansion,bool withTimeCsv): QThread()
 {
-    // IsRunning = true;
-    _timeExpansion=10;
+    _processSuffixe = processSuffixe;
+    _threadSuffixe = threadSuffixe;
+    _modeDirFile = modeDirFile;
+    _wavPath = wavPath;
+    _wavFileList = wavFileList;
+    _wavRepList = wavRepList;
+    _timeExpansion = timeExpansion;
+    _withTimeCsv = withTimeCsv;
+    //
+    _txtPath = _wavPath + "/txt";
     ResultSuffix = QString("ta");
     MustCompress = false;
-    // lecture des paramètres
-    bool waitValue=false;
-    int paramParam=PARAMNO;
-    bool on_a_determine = false;
-    QString determine;
-    for(int i=1;i<argc;i++)
-    {
-        QString alire = QString(argv[i]);
-        if(alire.left(1)=="-")
-        {
-            waitValue = false;
-            if(alire.length()==2)
-            {
-                paramParam = PARAMNO;
-                if(alire.right(1)=="x") {paramParam = PARAMEXPANSION; waitValue=true;}
-                if(alire.right(1)=="c") paramParam = PARAMCOMPRESS; // TODO...
-                if(alire.right(1)=="h") paramParam = PARAMHELP; // TODO...
-            }
-        }
-        else
-        {
-            if(waitValue)
-            {
-                if(paramParam==PARAMEXPANSION)
-                {
-                    bool ok;
-                    int valueExpansion = alire.toInt(&ok,10) ;
-                    if(ok==true && (valueExpansion == 1 || valueExpansion == 10)) _timeExpansion = valueExpansion;
-                }
-            }
-            else
-            {
-                // QString firstArgument = QString(argv[1]);
-                if(!on_a_determine)
-                {
-                    if(alire.length()>4) determine = alire.right(4).toLower();
-                    if(determine == ".wav" ) _modeDirFile = FILESMODE;
-                    else
-                    {
-                        _modeDirFile = DIRECTORYMODE;
-                        _wavPath = alire;
-                    }
-                }
-                if(_modeDirFile == FILESMODE) _firstList.append(alire);
-            } // fin du else waitvalue = true
-            waitValue=false;
-        } // fin du cas non paramètre "-"
-    }
+    _imageData = false;
     //
     _detectionThreshold = 26;
     _stopThreshold = 20;
@@ -75,52 +32,19 @@ Detec::Detec(int argc,char **argv): QThread()
     _lowThreshold = -4;
     _qR = 5;
     _qN = 5;
+    _withNewParams = false;
     _freqCallMin=8.0f;
-    _initPassed = InitializeDetec();
-    if(_initPassed)
-    {
-        _detecTreatment = new DetecTreatment(this);
-        _logText << "_timeExpansion = " << _timeExpansion << endl;
-        _detecTreatment->SetGlobalParameters(_timeExpansion,_detectionThreshold,_stopThreshold,
-                                             _freqMin,_nbo,
-                                             _useValflag,_jumpThreshold,_widthBigControl,_widthLittleControl,
-                                             _highThreshold,_lowThreshold,_qR,_qN);
-        if(_modeDirFile==DIRECTORYMODE) _detecTreatment->SetDirParameters(_wavPath,_txtPath,false,"","");
-        _detecTreatment->InitializeDetecTreatment();
-    }
+    InitializeDetec();
+    _detecTreatment = new DetecTreatment(this);
+    _logText << "_timeExpansion = " << _timeExpansion << endl;
+    _detecTreatment->SetGlobalParameters(_timeExpansion,_detectionThreshold,_stopThreshold,
+                                         _freqMin,_nbo,
+                                         _useValflag,_jumpThreshold,_widthBigControl,_widthLittleControl,
+                                         _highThreshold,_lowThreshold,_qR,_qN,_withNewParams);
+    if(_modeDirFile==DIRECTORYMODE) _detecTreatment->SetDirParameters(_wavPath,_txtPath,false,"","");
+    _logText << "cd _wathPath="   << _wavPath << "     _txtPath="   << _txtPath << endl;
+    _detecTreatment->InitializeDetecTreatment();
 }
-
-/*
-Detec::Detec(QString dirPath): QThread()
-{
-    _wavPath = dirPath;
-    _timeExpansion=10;
-    _detectionThreshold = 26;
-    _stopThreshold = 18;
-    _freqMin = 0;
-    _nbo = 4;
-    _useValflag = true;
-    _jumpThreshold = 30;
-    _widthBigControl = 60;
-    _widthLittleControl = 5;
-    _highThreshold = 10;
-    _lowThreshold = -4;
-    _qR = 5;
-    _qN = 5;
-    _freqCallMin=8.0f;
-    _initPassed = InitializeDetec();
-    if(_initPassed)
-    {
-        _detecTreatment = new DetecTreatment(this);
-        _detecTreatment->SetGlobalParameters(_timeExpansion,_detectionThreshold,_stopThreshold,
-                                             _freqMin,_nbo,
-                                             _useValflag,_jumpThreshold,_widthBigControl,_widthLittleControl,
-                                             _highThreshold,_lowThreshold,_qR,_qN);
-        _detecTreatment->SetDirParameters(_wavPath,_wavFileList,_txtPath,false,"","");
-        _detecTreatment->InitializeDetecTreatment();
-    }
-}
-*/
 
 Detec::~Detec()
 {
@@ -128,100 +52,60 @@ Detec::~Detec()
 
 bool Detec::InitializeDetec()
 {
-    //IsRunning = true;
-    QString logFilePath("detec.log");
+    QString logDirPath = QDir::currentPath()+"/log";
+    QString logFilePath(logDirPath + QString("/detec")+_processSuffixe+_threadSuffixe+".log");
     _logFile.setFileName(logFilePath);
     _logFile.open(QIODevice::WriteOnly | QIODevice::Text);
     _logText.setDevice(&_logFile);
-    _logText << "Lancement TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-
-    QString errorFilePath("error.log");
+    _logText << "Lancement Detec" <<_processSuffixe<<_threadSuffixe << " : " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+    //
+    //
+    QString errorFilePath(logDirPath + QString("/error")+_processSuffixe+_threadSuffixe+".log");
     _errorFile.setFileName(errorFilePath);
     if(_errorFile.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-    _errorStream.setDevice(&_errorFile);
-    _errorFileOpen = true;
+        _errorStream.setDevice(&_errorFile);
+        _errorFileOpen = true;
     }
     else _errorFileOpen = false;
     //
-    if(_modeDirFile == DIRECTORYMODE)
+    _timeFileOpen = false;
+    if(_withTimeCsv)
     {
-        QDir sdir(_wavPath);
-        if(!sdir.exists())
+        QString timePath(logDirPath + QString("/time")+_processSuffixe+_threadSuffixe+".csv");
+        _timeFile.setFileName(timePath);
+        if(_timeFile.open(QIODevice::WriteOnly | QIODevice::Text)==true)
         {
-            _logText << "répertoire "<< _wavPath << " non trouvé !" << endl;
-            return(false);
+            _timeFileOpen = true;
+            _timeStream.setDevice(&_timeFile);
+            _timeStream.setRealNumberNotation(QTextStream::FixedNotation);
+            _timeStream.setRealNumberPrecision(2);
+            _timeStream << "filename" << '\t' << "computefft" << '\t' << "noisetreat" << '\t' << "shapesdetects" << '\t' << "parameters" << '\t'
+                        << "save - end" << '\t' << "total time(ms)" << endl;
         }
-        _wavFileList = sdir.entryList(QStringList("*.wav"), QDir::Files);
-        if(_wavFileList.isEmpty())
-        {
-            _logText << "aucun fichier wav trouvé dans le répertoire "<< _wavPath << " !" << endl;
-            return(false);
-        }
-        QString dirPath = sdir.absolutePath();
-        if(!createTxtFile(dirPath)) return(false);
     }
-    else
-    {
-        // _modeDirFile == FILESMODE
-        QFile f;
-        QDir d;
-        QString determine;
-        int nwf=0;
-        foreach(QString wf,_firstList)
-        {
-            if(wf.length()>4) determine = wf.right(4).toLower();
-            else determine = "";
-            if(determine == ".wav" )
-            {
-                f.setFileName(wf);
-                if(f.exists())
-                {
-                    QFileInfo finf(wf);
-                    d = finf.dir();
-                    if(d.exists())
-                    {
-                        _wavFileList.append(finf.fileName());
-                        _wavRepList.append(d.absolutePath());
-                        nwf++;
-                    }
-                }
-            }
-        }
-        if(nwf==0)
-        {
-            _logText << "aucun fichier wav trouvé !" << endl;
-            return(false);
-        }
-        _txtPath = ""; // à déterminerpour chaque fichier
-    }
+    //
     return true;
 }
 
 void Detec::endDetec()
 {
-    _errorFile.close();
-    if(_initPassed)
-    {
-        _detecTreatment->EndDetecTreatment();
-    }
-    _logText << "Fin d'exécution TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+    if(_errorFileOpen) _errorFile.close();
+    if(_timeFileOpen) _timeFile.close();
+    _detecTreatment->EndDetecTreatment();
+    _logText << "Fin de traitement Detec" << _processSuffixe  << _threadSuffixe << " : " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     _logFile.close();
     // IsRunning = false;
 }
 
 void Detec::run()
 {
-    if(_initPassed)
+    QString dirPath,wavFile;
+    for(int i=0;i<_wavFileList.size();i++)
     {
-        //foreach(QString wavFile,_wavFileList) treatOneFile(wavFile);
-        QString dirPath,wavFile;
-        for(int i=0;i<_wavFileList.size();i++)
-        {
-            if(_modeDirFile == DIRECTORYMODE) dirPath=_wavPath;
-            else dirPath = _wavRepList.at(i);
-            treatOneFile(_wavFileList.at(i),dirPath);
-        }
+        if(_modeDirFile == DIRECTORYMODE) dirPath=_wavPath;
+        else dirPath = _wavRepList.at(i);
+        treatOneFile(_wavFileList.at(i),dirPath);
     }
     endDetec();
 }

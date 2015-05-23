@@ -8,7 +8,7 @@
 #include <QFile>
 #include <QSettings>
 #include <QtCore/qmath.h>
-#include <QtGui/QMainWindow>
+// #include <QtGui/QMainWindow>
 #include <QTextStream>
 #include <QThread>
 #include "detectreatment.h"
@@ -22,22 +22,32 @@ class Detec : public QThread
 {
     Q_OBJECT
 public:
-    Detec(QString);
-    Detec(int,char **);
+    Detec(QString,QString,int,QString,QStringList,QStringList,int,bool);
+    Detec(int);
     ~Detec();
-    void            run();
+    void                 run();
+    bool                 InitializeDetec();
+    bool                createTxtFile(QString);
+    //
     DetecTreatment  *_detecTreatment;
-    bool                  _errorFileOpen;
-    QTextStream   _errorStream;
-    bool                  InitializeDetec();
     int                     _logVersion;
     bool                 MustCompress;
     int                     _userVersion;
-    QTextStream  _logText;
     QString           ResultSuffix;
+    QTextStream  _timeStream;
+    bool                 _timeFileOpen;
+    bool                 _imageData;
+
+    bool                  _errorFileOpen;
+    QTextStream   _errorStream;
+    QTextStream  _logText;
+    bool _withTimeCsv;
 
 private:
-    bool                createTxtFile(QString);
+    int                   _numThread;
+    int                   _nProcess;
+    QString          _threadSuffixe;
+    QString          _processSuffixe;
     void                endDetec();
     void                treatOneFile(QString,QString);
 
@@ -47,12 +57,12 @@ private:
     QStringList   _firstList;
     float               _freqCallMin;
     int                  _freqMin;
-    bool               _initPassed;
     QFile             _logFile;
     int                   _modeDirFile;
     int	              _nbo;
     int                  _stopThreshold;
     int	              _timeExpansion;
+    QFile             _timeFile;
     QString         _txtPath;
     bool               _useValflag;
     QStringList   _wavFileList;
@@ -67,6 +77,7 @@ private:
     int                 *_tabr1;
     int                 _widthBigControl;
     int                _widthLittleControl;
+    bool            _withNewParams;
 };
 
 #endif

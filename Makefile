@@ -20,8 +20,8 @@ else
 CXXFLAGS	+= -g -ggdb -O0
 endif
 
-SRC		= main.cpp detec.cpp detectreatment.cpp
-HEADERS		= detec.h
+SRC		= main.cpp deteclaunch.cpp detec.cpp detectreatment.cpp
+HEADERS		= deteclaunch.h detec.h
 OBJ		= $(SRC:.cpp=.o)
 MOC_OBJ		= $(HEADERS:.h=.moc.cpp)
 

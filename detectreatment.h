@@ -16,7 +16,7 @@
 #include "fftw3.h"
 
 #include <QPoint>
-#include <QImage>
+//#include <QImage>
 
 
 
@@ -100,6 +100,7 @@ public:
     void SetDirParameters(QString,QString,bool,QString,QString);
     void SetGlobalParameters(int,int,int,int,int,bool,int,int,int,int,int,int,int,bool);
     void sortFloatIndArray(float *,int,int *);
+
     QVector< ParamToSave >       _vectPar;
 
 

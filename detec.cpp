@@ -4,7 +4,7 @@
 using namespace std;
 
 
-Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QString wavPath,QStringList wavFileList,QStringList wavRepList,int timeExpansion,bool withTimeCsv): QThread()
+Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QString wavPath,QStringList wavFileList,QStringList wavRepList,int timeExpansion,bool withTimeCsv,int parVer): QThread()
 {
     _processSuffixe = processSuffixe;
     _threadSuffixe = threadSuffixe;
@@ -14,6 +14,8 @@ Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QStrin
     _wavRepList = wavRepList;
     _timeExpansion = timeExpansion;
     _withTimeCsv = withTimeCsv;
+    _paramVersion = parVer;
+    ReprocessingMode = false;
     //
     _txtPath = _wavPath + "/txt";
     ResultSuffix = QString("ta");
@@ -32,7 +34,6 @@ Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QStrin
     _lowThreshold = -4;
     _qR = 5;
     _qN = 5;
-    _withNewParams = false;
     _freqCallMin=8.0f;
     InitializeDetec();
     _detecTreatment = new DetecTreatment(this);
@@ -40,7 +41,7 @@ Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QStrin
     _detecTreatment->SetGlobalParameters(_timeExpansion,_detectionThreshold,_stopThreshold,
                                          _freqMin,_nbo,
                                          _useValflag,_jumpThreshold,_widthBigControl,_widthLittleControl,
-                                         _highThreshold,_lowThreshold,_qR,_qN,_withNewParams);
+                                         _highThreshold,_lowThreshold,_qR,_qN,_paramVersion);
     if(_modeDirFile==DIRECTORYMODE) _detecTreatment->SetDirParameters(_wavPath,_txtPath,false,"","");
     _logText << "cd _wathPath="   << _wavPath << "     _txtPath="   << _txtPath << endl;
     _detecTreatment->InitializeDetecTreatment();

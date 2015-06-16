@@ -17,6 +17,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
     _nbProcess = 1;
     _nCalled = 0;
     _withTimeCsv = false;
+    _paramVersion = 0;
     // -----------------------------------------------------------------
     // 1) lecture des paramètres
     bool waitValue=false;
@@ -39,6 +40,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
                 if(alire.right(1)=="t") {paramParam = PARAMNTHREADS; waitValue=true;}
                 if(alire.right(1)=="p") {paramParam = PARAMNPROCESS; waitValue=true;}
                 if(alire.right(1)=="s") _withTimeCsv = true;
+                if(alire.right(1)=="v") {paramParam = PARAMNVERSION; waitValue=true;}
 
             }
             else
@@ -67,6 +69,10 @@ bool DetecLaunch::treat(int argc, char *argv[])
                 if(paramParam==PARAMNCALLED)
                 {
                     if(ok==true && value > 0) _nCalled = value;
+                }
+                if(paramParam==PARAMNVERSION)
+                {
+                    if(ok==true && value > 0) _paramVersion = value;
                 }
             }
             else
@@ -240,8 +246,8 @@ bool DetecLaunch::treat(int argc, char *argv[])
     for(int i=0;i<_nbThreads;i++)
     {
         if(_nbThreads>1) threadSuffixe = QString("_") + QString::number(i+1);
-        if(_nbThreads==1) pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv);
-        else  pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv);
+        if(_nbThreads==1) pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion);
+        else  pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion);
     // variables à initialiser
         pdetec[i]->start();
         threadRunning[i]=true;

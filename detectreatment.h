@@ -16,9 +16,6 @@
 #include "fftw3.h"
 
 #include <QPoint>
-//#include <QImage>
-
-
 
 #define	FFT_HEIGHT_HALF_MAX 2048
 #define FREQ_MAX 250 // KHz
@@ -64,7 +61,6 @@ enum NUMPAR {StTime,Dur,PrevSt,Fmax,Fmin,BW,FPk,FPkD,TPk,Slope,ISlope,HCF,FIF,TH
      SDCLWB,SDCLRWB,SDCLRYWB,SDCLRXYWB,
      SDCLOPWB,SDCLROPWB,SDCLRYOPWB,SDCLRXYOPWB,
      SDCL_DNP,SDCLR_DNP,SDCLRY_DNP,SDCLRXY_DNP,SDCLRXY2_DNP,
-     SDCLOP_DNP,SDCLROP_DNP,SDCLRYOP_DNP,SDCLRXYOP_DNP,
      ELBPOS,ELBSB,ELB2POS,ELB2SB,
      RAF,RAE,RAFE,RAFP,RAFP2,RAFP3,
      SBMP,SAMP,SBAR,
@@ -75,6 +71,7 @@ class ParamToSave
 {
 public:
     ParamToSave(int,int,QString);
+    ParamToSave(int,int,QString,int);
     ParamToSave();
     ~ParamToSave();
 
@@ -82,6 +79,7 @@ public:
     int NumPar;
     QString ColumnTitle;
     QString InfoLabel;
+    int NeedVer;
 };
 
 
@@ -92,16 +90,23 @@ public:
     DetecTreatment(Recherche *);
     ~DetecTreatment();
     bool CallTreatmentsForOneFile(QString& wavFile,QString &pathFile);
-    uint calculateRGB(double);
-    void createImage(QString);
     void EndDetecTreatment();
     void InitializeDetecTreatment();
     void saveDatFile(QString wavFile);
     void SetDirParameters(QString,QString,bool,QString,QString);
-    void SetGlobalParameters(int,int,int,int,int,bool,int,int,int,int,int,int,int,bool);
+    void SetGlobalParameters(int,int,int,int,int,bool,int,int,int,int,int,int,int,int);
     void sortFloatIndArray(float *,int,int *);
 
     QVector< ParamToSave >       _vectPar;
+    int			                 _sonogramWidth;
+    int			                 _fftHeightHalf;
+    double			             _energyMax;
+    double		                 _energyMin;
+    int                           _limY;
+    qint16 **                 _sonogramArray;
+    float                        _energyShapeThreshold;
+    float                        _energyStopThreshold;
+    char**                       _pointFlagsArray;
 
 
 private:
@@ -111,7 +116,6 @@ private:
     bool computeFFT(QString &);
     void correctNoise();
     void detectsParameter2();
-    void initBvrvb(double,double);
     void initVectorParams();
     bool openWavFile(QString &wavFile);
     void saveParameters(const QString&);
@@ -123,7 +127,6 @@ private:
     void sortIntArrays(int *,int,int *);
 
     // attributes
-    double                       _bRGB[5][4];
     Detec                        *_detec;
     float                        *_averagePerX;
     QDir                         _baseDayDir;
@@ -160,28 +163,21 @@ private:
     float                        **_dpm;
     int                          **_dypm;
     float                        *_eMaxPerX;
-    double			             _energyMax;
-    double		                 _energyMin;
     float                        *_energyMoyCol;
-    float                        _energyShapeThreshold;
-    float                        _energyStopThreshold;
     QFile                        _expandParametersFile;
     QDataStream                  _expandParametersStream;
     bool                         *_flagGoodCol;
     int			                 _fftHeight;
-    int			                 _fftHeightHalf;
     fftwf_complex*	             _fftRes;
     float                        _freqCallMin;
     int                          _freqMin;
     int                          **_harmonic;
     bool                         _imageData;
     QString                      _imagePath;
-    int                          _imaWidth;
     int                          *_inflexion1;
     int                          *_inflexion3;
     int				             _iOverlapMoving;
     float                        _khzPerY;
-    int                           _limY;
     bool                         _littleParams;
     int                          *_lowSlope;
     QVector< QPoint >            _masterPoints;
@@ -202,14 +198,11 @@ private:
 
     int                          _patience;
     fftwf_plan		             _plan;
-    char**                       _pointFlagsArray;
     QString                      ResultSuffix;
     QString                      ResultCompressedSuffix;
     bool                         _saveTitleLine;
     float                        *_slope;
     //£ float **                 _sonogramArray;
-    qint16 **                 _sonogramArray;
-    int			                 _sonogramWidth;
     SNDFILE*		             _soundFile;
     SF_INFO			             _soundFileInfo;
     int                          _stopThreshold;
@@ -234,7 +227,6 @@ private:
     int                          _xMin;
     //£ int                    *_xMinPerY;
     quint16                   *_xMinPerY;
-    bool                         _xmoitie;
     //£ int                          *_xSecondWestRidgePerY;
     quint16                  *_xSecondWestRidgePerY;
     //£ int                      **_yEmaxPerX;
@@ -259,8 +251,7 @@ private:
     int _qN;
     bool _fileProblem;
     int *_tabr1;
-    bool _withNewParams;
-
+    //bool _withNewParams;
 
 };
 

@@ -15,6 +15,8 @@
 #define PARAMNTHREADS 4
 #define PARAMNPROCESS 5
 #define PARAMNCALLED 6
+#define PARAMNVERSION 7
+
 
 #include <QObject>
 #include <QString>
@@ -55,6 +57,7 @@ private :
     int _nCalled;
     QTextStream  _logText;
     QFile _logFile;
+    int _paramVersion;
 };
 
 #endif // DETECLAUNCH_H

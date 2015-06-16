@@ -22,7 +22,7 @@ class Detec : public QThread
 {
     Q_OBJECT
 public:
-    Detec(QString,QString,int,QString,QStringList,QStringList,int,bool);
+    Detec(QString,QString,int,QString,QStringList,QStringList,int,bool,int);
     Detec(int);
     ~Detec();
     void                 run();
@@ -41,7 +41,12 @@ public:
     bool                  _errorFileOpen;
     QTextStream   _errorStream;
     QTextStream  _logText;
-    bool _withTimeCsv;
+    bool                  _withTimeCsv;
+    bool                  ReprocessingMode;
+    float _numtE;
+    int _tE;
+    int _numVer;
+    bool _xmoitie;
 
 private:
     int                   _numThread;
@@ -77,7 +82,8 @@ private:
     int                 *_tabr1;
     int                 _widthBigControl;
     int                _widthLittleControl;
-    bool            _withNewParams;
+    //bool            _withNewParams;
+    int                _paramVersion;
 };
 
 #endif

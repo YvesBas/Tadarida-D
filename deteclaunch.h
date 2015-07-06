@@ -34,6 +34,7 @@ public:
     ~DetecLaunch();
     bool treat(int,char **);
     bool _withTimeCsv;
+    bool IDebug;
 
 private slots:
     void processFinished(int,QProcess::ExitStatus);

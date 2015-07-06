@@ -12,7 +12,7 @@ DEFINES += BUILDTIME=\\\"$$system(date '+%H:%M.%s')\\\"
 DEFINES += BUILDDATE=\\\"$$system(date '+%d/%m/%y')\\\"
 }
 
-QT       += core
+QT       += core gui
 
 
 TARGET = TadaridaD
@@ -22,11 +22,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     detec.cpp \
-    detectreatment.cpp
+    detectreatment.cpp \
+    deteclaunch.cpp
 
 HEADERS += \
     detec.h \
-    detectreatment.h
+    detectreatment.h \
+    deteclaunch.h
 
 INCLUDEPATH += "C:/Program Files (x86)/Mega-Nerd/libsndfile/include" "Headers"
 

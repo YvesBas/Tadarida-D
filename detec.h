@@ -22,7 +22,7 @@ class Detec : public QThread
 {
     Q_OBJECT
 public:
-    Detec(QString,QString,int,QString,QStringList,QStringList,int,bool,int);
+    Detec(QString,QString,int,QString,QStringList,QStringList,int,bool,int,bool);
     Detec(int);
     ~Detec();
     void                 run();
@@ -47,6 +47,7 @@ public:
     int _tE;
     int _numVer;
     bool _xmoitie;
+    bool IDebug;
 
 private:
     int                   _numThread;

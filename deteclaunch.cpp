@@ -18,6 +18,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
     _nCalled = 0;
     _withTimeCsv = false;
     _paramVersion = 0;
+    IDebug = false;
     // -----------------------------------------------------------------
     // 1) lecture des paramètres
     bool waitValue=false;
@@ -41,7 +42,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
                 if(alire.right(1)=="p") {paramParam = PARAMNPROCESS; waitValue=true;}
                 if(alire.right(1)=="s") _withTimeCsv = true;
                 if(alire.right(1)=="v") {paramParam = PARAMNVERSION; waitValue=true;}
-
+                if(alire.right(1)=="d") IDebug = true;
             }
             else
             {
@@ -227,6 +228,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
     {
         if(_nwfp < _nbThreads) _nbThreads = _nwfp;
     }
+    _logText << "nbthreads = " << _nbThreads << endl;
     Detec **pdetec = new Detec*[_nbThreads];
     QStringList   *pWavFileList = new QStringList[_nbThreads];
     bool *threadRunning = new bool[_nbThreads];
@@ -245,10 +247,14 @@ bool DetecLaunch::treat(int argc, char *argv[])
     QString threadSuffixe = "";
     for(int i=0;i<_nbThreads;i++)
     {
+        _logText << "création du thread " << i << endl;
+
         if(_nbThreads>1) threadSuffixe = QString("_") + QString::number(i+1);
-        if(_nbThreads==1) pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion);
-        else  pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion);
+        if(_nbThreads==1) pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug);
+        else  pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug);
     // variables à initialiser
+
+        _logText << "lancement du thread " << i << endl;
         pdetec[i]->start();
         threadRunning[i]=true;
     }
@@ -263,14 +269,20 @@ bool DetecLaunch::treat(int argc, char *argv[])
             {
                 threadRunning[i] = false;
                 nbtr--;
+                _logText << "Détecté fin fu thread " << i << "delete  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
                 delete pdetec[i];
+                _logText << "Détecté fin fu thread " << i << " après delete  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             }
         }
         SLEEP(100);
     }
+
+    _logText << "Delete des tableaux pdetec etc...  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     delete[] pdetec;
     delete[] pWavFileList;
     delete[] threadRunning;
+    _logText << "après delete des tableaux  " << endl;
     // -----------------------------------------------------------------
     // 7) boucle d'attente de fin des autres processus
     // TODO : donner un temps d'attente limite proportionnel au nombre de fichiers
@@ -295,8 +307,16 @@ bool DetecLaunch::treat(int argc, char *argv[])
             }
             SLEEP(200);
         }
-        for(int i=1;i<_nbProcess;i++) delete pProcess[i];
+        _logText << "avant delete des processus.  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+        for(int i=1;i<_nbProcess;i++)
+        {
+            _logText << "Delete du processus " << i << "  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
+            delete pProcess[i];
+            _logText << "apres delete du processus " << i  << endl;
+        }
         delete[] pProcess;
+        _logText << "après delete des processus  " << endl;
     }
 
     if(_nCalled > 0)

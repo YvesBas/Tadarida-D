@@ -585,11 +585,6 @@ bool DetecTreatment::computeFFT(QString &wavFile)
 
     _iOverlapMoving	= (int)ceil((float)_fftHeight/(float)(_nbo*2));
     _sonogramWidth		= (int)ceil(_nbo*2*(float)_soundFileInfo.frames/(float)_fftHeight)+1;
-    if(_detec->IDebug) _detec->_logText << "cFFT avant alloc" << endl;
-    _data				= ( float* ) fftwf_malloc( sizeof( float ) * _fftHeight );
-    _fftRes 		= ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * _fftHeight );
-    _complexInput        = ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * _fftHeight );
-    if(_detec->IDebug) _detec->_logText << "cFFT après alloc" << endl;
     _msPerX =(float)(_fftHeightHalf*1000)/(_nbo*_soundFileInfo.samplerate*_timeExpansion); //Time: msec
     //_fIStream << _sonogramWidth*_msPerX/1000 << '\t';
     _khzPerY =(float)(_soundFileInfo.samplerate*_timeExpansion)/(float)(_fftHeight*1000); //Freq:khz
@@ -606,6 +601,15 @@ bool DetecTreatment::computeFFT(QString &wavFile)
         _detec->_logText << wavFile << ": fichier trop grand" << endl;
         return  false;
     }
+    //
+    if(_detec->IDebug) _detec->_logText << "cFFT avant alloc" << endl;
+
+    _data				= ( float* ) fftwf_malloc( sizeof( float ) * _fftHeight );
+    _fftRes 		= ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * _fftHeight );
+    _complexInput        = ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * _fftHeight );
+
+    if(_detec->IDebug) _detec->_logText << "cFFT après alloc" << endl;
+    //
     sf_seek(_soundFile, 0, SEEK_END);
     _plan = fftwf_plan_dft_1d( _fftHeight, _complexInput, _fftRes, FFTW_FORWARD, FFTW_ESTIMATE );
     float fact1=2.0f*PI;

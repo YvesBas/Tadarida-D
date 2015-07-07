@@ -35,14 +35,14 @@ bool DetecLaunch::treat(int argc, char *argv[])
             waitValue = false;
             if(alire.length()==2)
             {
-                if(alire.right(1)=="x") {paramParam = PARAMEXPANSION; waitValue=true;}
-                if(alire.right(1)=="c") paramParam = PARAMCOMPRESS; // TODO...
+                if(alire.right(1) == "x") {paramParam = PARAMEXPANSION; waitValue=true;}
+                if(alire.right(1) == "c") paramParam = PARAMCOMPRESS; // TODO...
                 // if(alire.right(1)=="h") paramParam = PARAMHELP; // TODO...
-                if(alire.right(1)=="t") {paramParam = PARAMNTHREADS; waitValue=true;}
-                if(alire.right(1)=="p") {paramParam = PARAMNPROCESS; waitValue=true;}
-                if(alire.right(1)=="s") _withTimeCsv = true;
-                if(alire.right(1)=="v") {paramParam = PARAMNVERSION; waitValue=true;}
-                if(alire.right(1)=="d") IDebug = true;
+                if(alire.right(1) == "t") {paramParam = PARAMNTHREADS; waitValue=true;}
+                if(alire.right(1) == "p") {paramParam = PARAMNPROCESS; waitValue=true;}
+                if(alire.right(1) == "s") _withTimeCsv = true;
+                if(alire.right(1) == "v") {paramParam = PARAMNVERSION; waitValue=true;}
+                if(alire.right(1) == "d") IDebug = true;
             }
             else
             {
@@ -188,6 +188,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
     _logFile.setFileName(logFilePath);
     _logFile.open(QIODevice::WriteOnly | QIODevice::Text);
     _logText.setDevice(&_logFile);
+    _logText << "Idebug=" << IDebug << endl;
     _logText << "Lancement TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     // -----------------------------------------------------------------
     // 4) Démarrage des autres process si nécessaire
@@ -209,17 +210,21 @@ bool DetecLaunch::treat(int argc, char *argv[])
             connect(pProcess[l], SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(processFinished(int,QProcess::ExitStatus)));
             QStringList arguments = argumentsBase;
             arguments << "-called" << QString::number(l);
+            _logText << "Avant lancement du processus " << l+1 << " "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             pProcess[l]->start(program,arguments);
+            _logText << "Apres lancement du processus " << l+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             processRunning[l] = true;
             QString endFilePath(logDirPath + QString("/end")+QString::number(l)+QString(".log"));
             QFile endFile;
             endFile.setFileName(endFilePath);
             if(endFile.exists())
             {
+                _logText << "Effacement initial du fichier " << endFilePath  << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
                 endFile.remove();
-                //_logText << "Effacement du fichier " << endFilePath << "   -   " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             }
         }
+        _logText << "Fin du demarrage des autres processus "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
     }
     // -----------------------------------------------------------------
     // 5) Répartition entre les threads
@@ -228,7 +233,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
     {
         if(_nwfp < _nbThreads) _nbThreads = _nwfp;
     }
-    _logText << "nbthreads = " << _nbThreads << endl;
+    _logText << "Nbthreads = " << _nbThreads << endl;
     Detec **pdetec = new Detec*[_nbThreads];
     QStringList   *pWavFileList = new QStringList[_nbThreads];
     bool *threadRunning = new bool[_nbThreads];
@@ -247,14 +252,14 @@ bool DetecLaunch::treat(int argc, char *argv[])
     QString threadSuffixe = "";
     for(int i=0;i<_nbThreads;i++)
     {
-        _logText << "création du thread " << i << endl;
+        _logText << "Creation du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
 
         if(_nbThreads>1) threadSuffixe = QString("_") + QString::number(i+1);
         if(_nbThreads==1) pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug);
         else  pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug);
     // variables à initialiser
 
-        _logText << "lancement du thread " << i << endl;
+        _logText << "Lancement du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
         pdetec[i]->start();
         threadRunning[i]=true;
     }
@@ -269,10 +274,10 @@ bool DetecLaunch::treat(int argc, char *argv[])
             {
                 threadRunning[i] = false;
                 nbtr--;
-                _logText << "Détecté fin fu thread " << i << "delete  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+                _logText << "Détecté fin du thread " << i+1 << "delete  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
 
                 delete pdetec[i];
-                _logText << "Détecté fin fu thread " << i << " après delete  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+                _logText << "Détecté fin du thread " << i+1 << " après delete  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             }
         }
         SLEEP(100);
@@ -282,7 +287,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
     delete[] pdetec;
     delete[] pWavFileList;
     delete[] threadRunning;
-    _logText << "après delete des tableaux  " << endl;
+    _logText << "Après delete des tableaux  " << endl;
     // -----------------------------------------------------------------
     // 7) boucle d'attente de fin des autres processus
     // TODO : donner un temps d'attente limite proportionnel au nombre de fichiers
@@ -307,16 +312,16 @@ bool DetecLaunch::treat(int argc, char *argv[])
             }
             SLEEP(200);
         }
-        _logText << "avant delete des processus.  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+        _logText << "Avant delete des processus.  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
         for(int i=1;i<_nbProcess;i++)
         {
-            _logText << "Delete du processus " << i << "  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            _logText << "Delete du processus " << i+1 << "  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
 
             delete pProcess[i];
-            _logText << "apres delete du processus " << i  << endl;
+            _logText << "Apres delete du processus " << i+1  << endl;
         }
         delete[] pProcess;
-        _logText << "après delete des processus  " << endl;
+        _logText << "Après delete du tableau des processus  " << endl;
     }
 
     if(_nCalled > 0)

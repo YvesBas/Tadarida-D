@@ -16,6 +16,7 @@ Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QStrin
     _withTimeCsv = withTimeCsv;
     _paramVersion = parVer;
     IDebug = iDebug;
+
     ReprocessingMode = false;
     //
     _txtPath = _wavPath + "/txt";
@@ -37,6 +38,7 @@ Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QStrin
     _qN = 5;
     _freqCallMin=8.0f;
     InitializeDetec();
+    _logText << "idebug = " << IDebug << endl;
     _detecTreatment = new DetecTreatment(this);
     _logText << "_timeExpansion = " << _timeExpansion << endl;
     _detecTreatment->SetGlobalParameters(_timeExpansion,_detectionThreshold,_stopThreshold,

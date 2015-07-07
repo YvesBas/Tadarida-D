@@ -13,6 +13,7 @@ CXXFLAGS	+= -W -Wall -std=c++0x -pedantic
 LDFLAGS		+= -lQtCore -lQtGui -lfftw3f -lsndfile
 INCLUDE		+= -I /usr/include/qt4/QtCore -I /usr/include/qt4/
 TARGET		= tadaridaD
+TEST_SCRIPT = tests/test.sh
 
 ifndef DEBUG
 CXXFLAGS	+= -O2
@@ -41,6 +42,10 @@ clean:
 	rm -f $(TARGET)
 	rm -f $(MOC_OBJ)
 	rm -rf tests/waves/txt
+	rm -rf log
 
 test: all
-	./$(TARGET) tests/waves
+	$(TEST_SCRIPT)
+	$(TEST_SCRIPT) -p 6
+	$(TEST_SCRIPT) -t 6
+	$(TEST_SCRIPT) -t 3 -p 2

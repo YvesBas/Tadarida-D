@@ -32,7 +32,7 @@
 #define SONOGRAM_WIDTH_MIN 64
 
 //£ #define MAXCRI 2000
-#define MAXCRI 2000
+#define MAXCRI 1000
 #define NCRETES 5
 #define EMIN -100
 

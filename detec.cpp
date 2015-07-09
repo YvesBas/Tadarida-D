@@ -52,6 +52,7 @@ Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QStrin
 
 Detec::~Detec()
 {
+    delete _detecTreatment;
 }
 
 bool Detec::InitializeDetec()

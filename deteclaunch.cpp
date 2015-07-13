@@ -263,6 +263,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
         _logText << "Lancement du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
         pdetec[i]->start();
         threadRunning[i]=true;
+        SLEEP(500);
     }
     // -----------------------------------------------------------------
     // 6) Boucle d'attente de fin des threads lancés par le processus en cours

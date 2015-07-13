@@ -17,11 +17,11 @@
 
 #include <QPoint>
 
+#define	FFT_HEIGHT_MAX 4096
 #define	FFT_HEIGHT_HALF_MAX 2048
 #define FREQ_MAX 250 // KHz
 //£ #define MAXLARCRI 10000
 #define MAXLARCRI 10000
-#define MAXHEIGHT 500
 #define MAXHEIGHT 500
 #define PI	3.14159265358979
 
@@ -125,6 +125,7 @@ private:
     void sortWaves();
     void sortFloatArray(float *,int);
     void sortIntArrays(int *,int,int *);
+    void aff(QString,qint64,int);
 
     // attributes
     Detec                        *_detec;
@@ -188,7 +189,6 @@ private:
     int                          _minY;
     float                        _msPerX;
     int	                         _nbo;
-    float**                      _noiseArray;
     int                          _numberCallParameters;
     int                          *_numberPixelsPerX;
     int                          *_numberPixelsPerY;
@@ -240,6 +240,8 @@ private:
     //£ int                     *_yMinPerX;
     quint16                   *_yMinPerX;
     int                          **_ypm;
+    char                     *_charSonogramArray;
+    char                     *_charPointFlagsArray;
     // ajouté pour nouveaux paramètres
     bool _useValflag;
     int _jumpThreshold;
@@ -250,9 +252,10 @@ private:
     int _qR;
     int _qN;
     bool _fileProblem;
-    int *_tabr1;
     //bool _withNewParams;
-
+    int *sortMp;
+    int *invMp;
+    int *xMp;
 };
 
 #endif // DETECTREATMENT_H

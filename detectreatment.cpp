@@ -44,7 +44,6 @@ DetecTreatment::DetecTreatment(Detec *pDet)
 
 DetecTreatment::DetecTreatment(Recherche *r)
 {
-    //_withNewParams = true;
     _paramVersion = 1; // TODO : à revoir
     initVectorParams();
 }
@@ -56,69 +55,176 @@ DetecTreatment::~DetecTreatment()
 void DetecTreatment::InitializeDetecTreatment()
 {
     if(_detec->IDebug) _detec->_logText << "idt 1" << endl;
+
+    _data				= ( float* ) fftwf_malloc( sizeof( float ) * FFT_HEIGHT_MAX );
+    if(_detec->IDebug) aff("_data",(qint64)_data,FFT_HEIGHT_MAX*sizeof(float));
+
+    _fftRes 		= ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * FFT_HEIGHT_MAX );
+    if(_detec->IDebug) aff("_fftRes",(qint64)_fftRes,FFT_HEIGHT_MAX*sizeof(fftwf_complex));
+
+    _complexInput        = ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * FFT_HEIGHT_MAX );
+    if(_detec->IDebug) aff("_complexInput",(qint64)_complexInput,FFT_HEIGHT_MAX*sizeof(fftwf_complex));
+    //
+    _coeff = new float[FFT_HEIGHT_HALF_MAX];
+    if(_detec->IDebug) aff("_coeff",(qint64)_coeff,FFT_HEIGHT_HALF_MAX*sizeof(float));
+
+    if(_detec->IDebug) _detec->_logText << "idt 1,5" << endl;
+
     _sonogramArray = new qint16*[MAXHEIGHT];
+    if(_detec->IDebug) aff("_sonogramArray",(qint64)_sonogramArray,MAXHEIGHT*sizeof(qint16 *));
+
     _pointFlagsArray = new char *[MAXHEIGHT];
+    if(_detec->IDebug) aff("_pointFlagsArray",(qint64)_pointFlagsArray,MAXHEIGHT*sizeof(char *));
+
+    // _charTabX = new char[MAXCRI*MAXLARCRI*sizeof(float)];
+    // _tabX = new float*[MAXCRI];
+    //for(int i=0 ; i < MAXCRI ; i++) _tabX[i] = (float *)((char *)(_charTabX+(i*MAXLARCRI*sizeof(float))));
+
+    _charSonogramArray = new char[MAXHEIGHT*SONOGRAM_WIDTH_MAX*sizeof(qint16)];
+    if(_detec->IDebug) aff("_charSonogramArray",(qint64)_charSonogramArray,MAXHEIGHT*SONOGRAM_WIDTH_MAX*sizeof(qint16));
+
+    _charPointFlagsArray = new char[MAXHEIGHT*LD8];
+    if(_detec->IDebug) aff("_charPointFlagsArray",(qint64)_charPointFlagsArray,MAXHEIGHT*LD8);
+
     for ( int i=0 ; i <MAXHEIGHT ; i++)
     {
-        _sonogramArray[i] = new qint16[SONOGRAM_WIDTH_MAX];
-        _pointFlagsArray[i] = new char[LD8];
+        //_sonogramArray[i] = new qint16[SONOGRAM_WIDTH_MAX];
+        _sonogramArray[i] = (qint16 *)((char *)(_charSonogramArray+(i*SONOGRAM_WIDTH_MAX*sizeof(qint16))));
+        //_pointFlagsArray[i] = new char[LD8];
+        _pointFlagsArray[i] = (char *)(_charPointFlagsArray+(i*LD8));
         memset(_sonogramArray[i],0,SONOGRAM_WIDTH_MAX*2);
     }
+
     if(_detec->IDebug) _detec->_logText << "idt 2" << endl;
+
     _energyMin = 0.0f;
+
     _charParamsArray = new char[MAXCRI*NBTAB*NBPAR*sizeof(float)];
+    if(_detec->IDebug) aff("_charParamsArray",(qint64)_charParamsArray,MAXCRI*NBTAB*NBPAR*sizeof(float));
+
     _paramsArray = new float**[MAXCRI];
+    if(_detec->IDebug) aff("_paramsArray",(qint64)_paramsArray,MAXCRI*sizeof(float **));
+
     _numberCallParameters = _vectPar.size();
 
     if(_detec->IDebug) _detec->_logText << "idt 3" << endl;
+
     for (int i=0;i < MAXCRI; i++)
     {
         _paramsArray[i] = new float *[NBTAB];
         for(int j=0;j < NBTAB; j++)
             _paramsArray[i][j] = (float *)((char *)(_charParamsArray+(i*NBTAB*NBPAR+j*NBPAR)*sizeof(float)));
     }
+
     _lowSlope = new int[NCRETES*MAXCRI*2];
+    if(_detec->IDebug) aff("_lowSlope",(qint64)_lowSlope,NCRETES*MAXCRI*2*sizeof(int));
+
     _inflexion1 = new int[NCRETES*MAXCRI*2];
+    if(_detec->IDebug) aff("_inflexion1",(qint64)_inflexion1,NCRETES*MAXCRI*2*sizeof(int));
+
     _inflexion3 = new int[NCRETES*MAXCRI*2];
+    if(_detec->IDebug) aff("_inflexion3",(qint64)_inflexion3,NCRETES*MAXCRI*2*sizeof(int));
+
     _harmonic=new int *[2];
     _dpm=new float *[2];
     _dypm=new int *[2];
     _ypm=new int *[2];
+
     for(int k=0;k<2;k++)
     {
         _harmonic[k]=new int [MAXCRI];
+        if(_detec->IDebug) aff(QString("_harmonic[")+QString::number(k)+"]",(qint64)_harmonic[k],MAXCRI*sizeof(int));
+
         _dpm[k]=new float[MAXCRI];
+        if(_detec->IDebug) aff(QString("_dpm[")+QString::number(k)+"]",(qint64)_dpm[k],MAXCRI*sizeof(float));
+
         _dypm[k]=new int[MAXCRI];
+        if(_detec->IDebug) aff(QString("_dypm[")+QString::number(k)+"]",(qint64)_dypm[k],MAXCRI*sizeof(int));
+
         _ypm[k]=new int[MAXCRI];
+        if(_detec->IDebug) aff(QString("_ypm[")+QString::number(k)+"]",(qint64)_ypm[k],MAXCRI*sizeof(int));
     }
+
     _tabY = new float[MAXHEIGHT];
+    if(_detec->IDebug) aff("_tabY",(qint64)_tabY,MAXHEIGHT*sizeof(float));
+
     _numberPixelsPerY = new int[MAXHEIGHT];
+    if(_detec->IDebug) aff("_numberPixelsPerY",(qint64)_numberPixelsPerY,MAXHEIGHT*sizeof(int));
+
     _numberPixelsPerX = new int[MAXLARCRI];
+    if(_detec->IDebug) aff("_numberPixelsPerX",(qint64)_numberPixelsPerX,MAXLARCRI*sizeof(int));
+
     _averagePerX = new float[MAXLARCRI];
+    if(_detec->IDebug) aff("_averagePerX",(qint64)_averagePerX,MAXLARCRI*sizeof(float));
+
     _xMinPerY = new quint16[MAXHEIGHT];
+    if(_detec->IDebug) aff("_xMinPerY",(qint64)_xMinPerY,MAXHEIGHT*sizeof(quint16));
+
     _xSecondWestRidgePerY = new quint16[MAXHEIGHT];
+    if(_detec->IDebug) aff("_xSecondWestRidgePerY",(qint64)_xSecondWestRidgePerY,MAXHEIGHT*sizeof(quint16));
+
     _xMaxPerY = new int[MAXHEIGHT];
+    if(_detec->IDebug) aff("_xMaxPerY",(qint64)_xMaxPerY,MAXHEIGHT*sizeof(int));
+
     _yMinPerX = new quint16[MAXLARCRI];
+    if(_detec->IDebug) aff("_yMinPerX",(qint64)_yMinPerX,MAXLARCRI*sizeof(quint16));
+
     _yMaxPerX = new quint16[MAXLARCRI];
+    if(_detec->IDebug) aff("_yMaxPerX",(qint64)_yMaxPerX,MAXLARCRI*sizeof(quint16));
+
     _yEbarPerX = new float[MAXLARCRI];
+    if(_detec->IDebug) aff("_yEbarPerX",(qint64)_yEbarPerX,MAXLARCRI*sizeof(float));
+
     _totYEPerX = new float[MAXLARCRI];
+    if(_detec->IDebug) aff("_totYEPerX",(qint64)_totYEPerX,MAXLARCRI*sizeof(float));
+
     _eMaxPerX = new float[MAXLARCRI];
-    _slope    = new float[qMax(MAXLARCRI,MAXHEIGHT)];
+    if(_detec->IDebug) aff("_eMaxPerX",(qint64)_eMaxPerX,MAXLARCRI*sizeof(float));
+
+    int maxOfTwo = qMax(MAXLARCRI,MAXHEIGHT);
+    _slope = new float[maxOfTwo];
+    if(_detec->IDebug) aff("_slope",(qint64)_slope,maxOfTwo*sizeof(float));
+
     if(_detec->IDebug) _detec->_logText << "idt 4" << endl;
+
     _charTabX = new char[MAXCRI*MAXLARCRI*sizeof(float)];
+    if(_detec->IDebug) aff("_charTabX",(qint64)_charTabX,MAXCRI*MAXLARCRI*sizeof(float));
+
     _tabX = new float*[MAXCRI];
     for(int i=0 ; i < MAXCRI ; i++) _tabX[i] = (float *)((char *)(_charTabX+(i*MAXLARCRI*sizeof(float))));
+    if(_detec->IDebug) aff("_tabX",(qint64)_tabX,MAXCRI*sizeof(float *));
     //
-    _charYEmaxPerX = new char[MAXCRI*MAXLARCRI*sizeof(int)];
+    _charYEmaxPerX = new char[MAXCRI*MAXLARCRI*sizeof(qint16)];
+    if(_detec->IDebug) aff("_charYEmaxPerX",(qint64)_charYEmaxPerX,MAXCRI*MAXLARCRI*sizeof(qint16));
+
     _yEmaxPerX = new quint16*[MAXCRI];
-    for(int i=0;i<MAXCRI;i++)  _yEmaxPerX[i] = (quint16 *)((char *)(_charYEmaxPerX+(i*MAXLARCRI*sizeof(int))));
+    for(int i=0;i<MAXCRI;i++)  _yEmaxPerX[i] = (quint16 *)((char *)(_charYEmaxPerX+(i*MAXLARCRI*sizeof(quint16))));
+    if(_detec->IDebug) aff("_yEmaxPerX",(qint64)_yEmaxPerX,MAXCRI*sizeof(quint16 *));
+
     _charTabYX = new char[MAXHEIGHT*MAXLARCRI*sizeof(float)];
+    if(_detec->IDebug) aff("_charTabYX",(qint64)_charTabYX,MAXHEIGHT*MAXLARCRI*sizeof(float));
+
     _tabYX = new float*[MAXHEIGHT];
     for(int i=0;i<MAXHEIGHT;i++) _tabYX[i] = (float *)((char *)(_charTabYX+(i*MAXLARCRI*sizeof(float))));
+    if(_detec->IDebug) aff("_tabYX",(qint64)_tabYX,MAXHEIGHT*sizeof(float *));
+
     if(_detec->IDebug) _detec->_logText << "idt 5" << endl;
+
     _energyMoyCol = new float[SONOGRAM_WIDTH_MAX];
+    if(_detec->IDebug) aff("_energyMoyCol",(qint64)_energyMoyCol,SONOGRAM_WIDTH_MAX*sizeof(float));
+
     _flagGoodCol = new bool[SONOGRAM_WIDTH_MAX];
-    _tabr1 = new int[MAXCRI];
+    if(_detec->IDebug) aff("_flagGoodCol",(qint64)_flagGoodCol,SONOGRAM_WIDTH_MAX*sizeof(bool));
+    //
+    sortMp = new int[MAXCRI];
+    if(_detec->IDebug) aff("sortMp",(qint64)sortMp,MAXCRI*sizeof(int));
+
+    invMp = new int[MAXCRI];
+    if(_detec->IDebug) aff("invMp",(qint64)invMp,MAXCRI*sizeof(int));
+
+    xMp = new int[MAXCRI];
+    if(_detec->IDebug) aff("xMp",(qint64)xMp,MAXCRI*sizeof(int));
+
     if(_detec->IDebug) _detec->_logText << "idt fin" << endl;
 }
 
@@ -202,9 +308,6 @@ void DetecTreatment::initVectorParams()
     //_vectPar.push_back(ParamToSave(CM,TPk,"CM_Ldom"));
     _vectPar.push_back(ParamToSave(CO2,TPk,"CO2_TPk"));
     for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,Slope,prefix[i]+"Slope"));
-    // ajouté le 30/03
-    // RAR : for(int i=CO;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,ISlope,prefix[i]+"ISlope"));
-    // if(_withNewParams) for(int i=CO;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,ISlope,prefix[i]+"ISlope"));
     for(int i=CO;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,ISlope,prefix[i]+"ISlope",1));
 
     for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,HCF,prefix[i]+"HCF"));
@@ -393,13 +496,21 @@ void DetecTreatment::EndDetecTreatment()
 {
     if(_detec->IDebug) _detec->_logText << "edt 1" << endl;
 
-    for ( int i=0 ; i < MAXHEIGHT ; i++)
-    {
-        delete[] _sonogramArray[i];
-        delete[] _pointFlagsArray[i];
-    }
+    fftwf_free(_data);
+    fftwf_free(_fftRes);
+    fftwf_free(_complexInput);
+    delete _coeff;
+
+    //for ( int i=0 ; i < MAXHEIGHT ; i++)
+    //{
+    //    delete[] _sonogramArray[i];
+    //    delete[] _pointFlagsArray[i];
+    //}
+    delete[] _charSonogramArray;
+    delete[] _charPointFlagsArray;
     delete[] _sonogramArray;
     delete[] _pointFlagsArray;
+    //
     for (int i=0;i < MAXCRI; i++) delete[] _paramsArray[i];
     delete[] _paramsArray;
 
@@ -421,6 +532,7 @@ void DetecTreatment::EndDetecTreatment()
     delete[] _dpm;
     delete[] _dypm;
     delete[] _ypm;
+    aff("_tabY",(qint64)_tabY,0);
     delete[] _tabY;
     delete[] _numberPixelsPerY;
     delete[] _numberPixelsPerX;
@@ -444,7 +556,10 @@ void DetecTreatment::EndDetecTreatment()
     if(_detec->IDebug) _detec->_logText << "edt 4" << endl;
     delete[] _energyMoyCol;
     delete[] _flagGoodCol;
-    delete[] _tabr1;
+    //
+    delete[] sortMp;
+    delete[] invMp;
+    delete[] xMp;
     if(_detec->IDebug) _detec->_logText << "edt fin" << endl;
 }
 
@@ -520,6 +635,12 @@ void DetecTreatment::clearVars()
     if(_detec->IDebug) _detec->_logText << "cv2" << endl;
 }
 
+void DetecTreatment::aff(QString name,qint64 address,int size)
+{
+    _detec->_logText << "Ptr " << name << " : " << address ;
+    if(size==0) _detec->_logText << " free" << endl;
+    else _detec->_logText << " size = " << size << endl;
+}
 
 bool DetecTreatment::openWavFile(QString& wavFile)
 {
@@ -583,6 +704,7 @@ bool DetecTreatment::computeFFT(QString &wavFile)
     _energyMin        = 0.0f;
     _fftHeightHalf		= (int)ceil((float)_fftHeight/(float)2);
 
+    if(_detec->IDebug) _detec->_logText << "cfft1" << endl;
     _iOverlapMoving	= (int)ceil((float)_fftHeight/(float)(_nbo*2));
     _sonogramWidth		= (int)ceil(_nbo*2*(float)_soundFileInfo.frames/(float)_fftHeight)+1;
     _msPerX =(float)(_fftHeightHalf*1000)/(_nbo*_soundFileInfo.samplerate*_timeExpansion); //Time: msec
@@ -602,22 +724,26 @@ bool DetecTreatment::computeFFT(QString &wavFile)
         return  false;
     }
     //
-    if(_detec->IDebug) _detec->_logText << "cFFT avant alloc" << endl;
 
-    _data				= ( float* ) fftwf_malloc( sizeof( float ) * _fftHeight );
-    _fftRes 		= ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * _fftHeight );
-    _complexInput        = ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * _fftHeight );
+    // déplacé les malloc dans initialisation pour ne les faire qu'une fois
+    // _data				= ( float* ) fftwf_malloc( sizeof( float ) * _fftHeight );
+    // _fftRes 		= ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * _fftHeight );
+    // _complexInput        = ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * _fftHeight );
 
-    if(_detec->IDebug) _detec->_logText << "cFFT après alloc" << endl;
     //
     sf_seek(_soundFile, 0, SEEK_END);
+
+    if(_detec->IDebug) _detec->_logText << "cfft2" << endl;
+    if(_detec->IDebug) _detec->_logText << "fftheight=" << _fftHeight << endl;
+
     _plan = fftwf_plan_dft_1d( _fftHeight, _complexInput, _fftRes, FFTW_FORWARD, FFTW_ESTIMATE );
+    if(_detec->IDebug) _detec->_logText << "cfft2,1" << endl;
     float fact1=2.0f*PI;
     float fact2=4.0f*PI;
     float quot1=_fftHeightHalf-1;
     //µ :
     _limY = qMin(_fftHeightHalf,MAXHEIGHT);
-    _coeff = new float[_fftHeightHalf];
+    //_coeff = new float[_fftHeightHalf]; // déplacé
     for (int i = 0 ; i < _fftHeightHalf ; i++)
     {
         _coeff[i] = 0.435f - 0.5f*cos(fact1*i/quot1)+ 0.065f*cos(fact2*i/quot1);
@@ -669,16 +795,18 @@ bool DetecTreatment::computeFFT(QString &wavFile)
             iCount++;
         }
     }
+    if(_detec->IDebug) _detec->_logText << "cfft3" << endl;
     //µ for(int i =0; i < _fftHeightHalf; i++) _sonogramArray[i][_sonogramWidth-1]=0;
     for(int i =0; i < _limY; i++) _sonogramArray[i][_sonogramWidth-1]=0;
     _energyMax = qMax(_energyMax, (double)0);
     sf_close (_soundFile);
-    if(_detec->IDebug) _detec->_logText << "cFFT avant free" << endl;
-    fftwf_free(_data);
-    fftwf_free(_fftRes);
-    fftwf_free(_complexInput);
-    if(_detec->IDebug) _detec->_logText << "cFFT après free" << endl;
-    delete _coeff;
+
+    if(_detec->IDebug) _detec->_logText << "cfft4" << endl;
+
+    // fftwf_free(_data);
+    // fftwf_free(_fftRes);
+    // fftwf_free(_complexInput);
+    //delete _coeff;
     return true;
 }
 
@@ -1062,23 +1190,25 @@ void DetecTreatment::detectsParameter2()
     if(nbcris< 1 || _maxCallWidth < 1 || _maxCallHeight < 1) return;
     int maxlarhau = _maxCallWidth;
     if(_maxCallHeight>maxlarhau) maxlarhau=_maxCallHeight;
-    if(_detec->IDebug) _detec->_logText << "-2" << endl;
+    //if(_detec->IDebug) _detec->_logText << "-2" << endl;
     //
     // 23/3/2015 :
-    int *sortMp = new int[nbcris];
-    int *invMp = new int[nbcris];
-    int *xMp = new int[nbcris];
+    //int *sortMp = new int[nbcris];
+    //int *invMp = new int[nbcris];
+    //int *xMp = new int[nbcris];
     for(int i=0;i<nbcris;i++) {sortMp[i]=i; xMp[i]=_masterPoints.at(i).x();}
      sortIntArrays(sortMp,nbcris,xMp);
      for(int i=0;i<nbcris;i++)  invMp[sortMp[i]]=i;
      //
-     if(_detec->IDebug) _detec->_logText << "-3" << endl;
+     if(_detec->IDebug) _detec->_logText << "-3" << "nbcris="<< nbcris << endl;
+
     for (int icri = 0 ; icri < nbcris ; icri++) //Execute for each call
     {
-       // if(_detec->IDebug) _detec->_logText << endl << "-3-icri=" << icri ;
+        //if(_detec->IDebug) _detec->_logText << endl << "-3-icri=" << icri << endl ; //+++
         oParam = _paramsArray[icri][SH];
+        //if(_detec->IDebug) _detec->_logText << "-3,1" << endl ; //+++
         for(int j=0;j<NCRETES;j++) oParamCrete[j] = _paramsArray[icri][j+1];
-        //if(_detec->IDebug) _detec->_logText << "-4";
+        //if(_detec->IDebug) _detec->_logText << "-4" << endl;  //+++
         QVector<QPoint> unemat = _callsArray.at(icri);
         int tailleforme = unemat.size(); // The number of vectors of each call
         int xmin = _sonogramWidth-1;
@@ -1139,30 +1269,35 @@ void DetecTreatment::detectsParameter2()
             _tabYX[y-ymin][x-xmin]=e;
 
         }
+        //if(_detec->IDebug) _detec->_logText << "ymin=" << ymin << " ymax=" << ymax << endl;  //+++
+        bool firstTime = false;
         eMoy = eTot / tailleforme;
         float erec; int xc;
         for(int k=0;k<=ymax-ymin;k++)
         {
             xc=_xMinPerY[k];
-            erec=_tabYX[k][xc-xmin];
-            int patience=0;
-            if(xmax>xc)
-            {
-                for(int l=xc-xmin+1;l<=xmax-xmin;l++)
+            //if(xc>=xmin)
+            //{
+                erec=_tabYX[k][xc-xmin];
+                int patience=0;
+                if(xmax>xc)
                 {
-                    if(_tabYX[k][l]>=erec)
+                    for(int l=xc-xmin+1;l<=xmax-xmin;l++)
                     {
-                        erec=_tabYX[k][l];
-                        xc=xmin+l;
-                        patience=0;
-                    }
-                    else
-                    {
-                        patience++;
-                        if(patience>3) break;
+                        if(_tabYX[k][l]>=erec)
+                        {
+                            erec=_tabYX[k][l];
+                            xc=xmin+l;
+                            patience=0;
+                        }
+                        else
+                        {
+                            patience++;
+                            if(patience>3) break;
+                        }
                     }
                 }
-            }
+            //}
             _xSecondWestRidgePerY[k]=xc;
         }
         int yfds = 0;
@@ -1233,7 +1368,7 @@ void DetecTreatment::detectsParameter2()
         float prevmp = 9999.0f;
         float prevsmart1 =9999.0f;
         //
-        //if(_detec->IDebug) _detec->_logText << "-5";
+        //if(_detec->IDebug) _detec->_logText << "-5" << endl;  //+++
 
         /*
         if(icri>0)
@@ -1283,7 +1418,7 @@ void DetecTreatment::detectsParameter2()
         }
         float prorata,bdeb,bfin,larco,lartot;
         int ideb,ifin;
-        //if(_detec->IDebug) _detec->_logText << "-6" ;
+        //if(_detec->IDebug) _detec->_logText << "-6" << endl ;  //+++
         lartot=(float)(xmax-xmin+1);
         for(int k=0;k<xmax-xmin+1;k++)
         {
@@ -1353,7 +1488,7 @@ void DetecTreatment::detectsParameter2()
             if(inoise==2)oParam[NoiseDown]  = bruit_moyen;
             if(inoise==3)oParam[NoiseUp]    = bruit_moyen;
         }
-        //if(_detec->IDebug)_detec->_logText << "-7";
+        //if(_detec->IDebug)_detec->_logText << "-7" << endl; //+++
         int nms=0;
         float sdm=0.0f;
         for(int k=0;k<xmax-xmin+1;k++)
@@ -1505,7 +1640,7 @@ void DetecTreatment::detectsParameter2()
         int ymaitr = _masterPoints.at(icri).y();
 
         // ---------------------------------------------------
-        //_logText << "Avant calcul des hetx, hety"  << endl;
+        //_detec->_logText << "Avant calcul des hetx, hety"  << endl;  //+++
         int npar,ntr,nen,xdeb,xfin,ydeb,yfin;
         float e1,e2,e3;
         for(int r=0;r<2;r++)
@@ -1608,7 +1743,7 @@ void DetecTreatment::detectsParameter2()
                 else oParam[npar] = (float)dift/(float)ntr;
             }
         }
-        //_logText << "Après calcul des hetx, hety"  << endl;
+        //_detec->_logText << "Après calcul des hetx, hety"  << endl; //+++
         // ---------------------------------------------------
         // HetCMC et HeCMD et HetCTC et HetCTD
         // ajouté recherche des pics et creux
@@ -1838,7 +1973,7 @@ void DetecTreatment::detectsParameter2()
             }
         } // next mt
         // -----------------------------------------------------------------------------------
-        //if(_detec->IDebug) _detec->_logText << "-8" ;
+        //if(_detec->IDebug) _detec->_logText << "-8" << endl ;  //+++
         oParam[Dbl8] = 0.0f;
         float e8 = 0.0f;
         int n8 = 0;
@@ -1904,7 +2039,7 @@ void DetecTreatment::detectsParameter2()
             //if(ponderTot!=0) oParam[Stab] = difTot / ponderTot;
             if(ponderTot!=0) oParam[Stab] = difTot / (ponderTot*100.0f);
         }
-        //_logText << "Avant calcul stablr et stabbr"  << endl;
+        //_detec->_logText << "Avant calcul stablr et stabbr"  << endl; //+++
         oParam[EnStabSm] = 0.0f;
         oParam[EnStabLg] = 0.0f;
         int radius,nbp;
@@ -1944,7 +2079,7 @@ void DetecTreatment::detectsParameter2()
             //if(nbp>0) oParam[npar] = difTot/nbp;
             if(nbp>0) oParam[npar] = difTot/((float)nbp*100.0f);
         }
-        //_logText << "Après calcul stablr et stabbr"  << endl;
+        //_detec->_logText << "Après calcul stablr et stabbr"  << endl; //+++
         float enerMaster[2];
         enerMaster[0] = (float) _tabY[ymaitr-ymin];
         enerMaster[1] = (float) _tabY[ymaitr-ymin]/_numberPixelsPerY[ymaitr-ymin];
@@ -1974,7 +2109,7 @@ void DetecTreatment::detectsParameter2()
         oParam[HeiEMT] = (float) enerHeight[1][1];
         oParam[HeiRTT] = oParam[HeiETT]/(ymax - ymin+1);
         oParam[HeiRMT] = oParam[HeiEMT]/(ymax - ymin+1);
-        //_logText << "Après calcul des Hei..."  << endl;
+//        _detec->_logText << "Après calcul des Hei..."  << endl;  //+++
         // ùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùù
         if(_imageData)
         {
@@ -3244,9 +3379,9 @@ void DetecTreatment::detectsParameter2()
     } // next icri
     //
     if(_detec->IDebug) _detec->_logText << "-12" << endl;
-    delete[] sortMp;
-    delete[] invMp;
-    delete[] xMp;
+    // delete[] sortMp;
+    // delete[] invMp;
+    // delete[] xMp;
     if(_detec->IDebug) _detec->_logText << "-dp2 fin" << endl;
 
 }

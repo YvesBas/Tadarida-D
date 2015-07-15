@@ -256,6 +256,7 @@ private:
     int *sortMp;
     int *invMp;
     int *xMp;
+    bool _firstFile;
 };
 
 #endif // DETECTREATMENT_H

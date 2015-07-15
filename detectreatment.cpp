@@ -32,6 +32,7 @@ ParamToSave::~ParamToSave()
 DetecTreatment::DetecTreatment(Detec *pDet)
 {
     _detec = pDet;
+    _firstFile = true;
     _freqCallMin=8.0f;
     _compressedVersion = 1;
     ResultSuffix = QString("ta");
@@ -539,20 +540,25 @@ bool DetecTreatment::CallTreatmentsForOneFile(QString& wavFile,QString &pathFile
         {
 
             d[0]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            _detec->_logText <<   "A.cFFT:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            //_detec->_logText <<   "A.cFFT:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            _detec->_logText <<   "A.cFFT"<< endl;
             correctNoise();
             d[1]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-             _detec->_logText <<   "A.cN:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            //_detec->_logText <<   "A.cN:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            _detec->_logText <<   "A.cN"<< endl;
             shapesDetects();
             d[2]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            _detec->_logText <<   "A.sD: "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            //_detec->_logText <<   "A.sD: "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            _detec->_logText <<   "A.sD: " << endl;
             _callsNumber = (int)_callsArray.size();
             detectsParameter2();
             d[3]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            _detec->_logText <<   "A.dP:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            //_detec->_logText <<   "A.dP:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            _detec->_logText <<   "A.dP" << endl;
             saveParameters(wavFile);
             d[4]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            _detec->_logText <<   "A.sP:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            //_detec->_logText <<   "A.sP:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            _detec->_logText <<   "A.sP" << endl;
             if(_detec->_timeFileOpen)
             {
                 _detec->_timeStream  << wavFile << '\t' << d[0] << '\t';
@@ -579,7 +585,7 @@ bool DetecTreatment::CallTreatmentsForOneFile(QString& wavFile,QString &pathFile
 
 void DetecTreatment::clearVars()
 {
-    if(_detec->IDebug) _detec->_logText << "cv1" << endl;
+    //if(_detec->IDebug) _detec->_logText << "cv1" << endl;
     _callsArray.clear();
     _vectorXMin.clear();
     _vectorXMax.clear();
@@ -592,13 +598,13 @@ void DetecTreatment::clearVars()
         _callWestRidgeArray.clear();
         _callSecondWestRidgeArray.clear();
     }
-    if(_detec->IDebug) _detec->_logText << "cv2" << endl;
+    //if(_detec->IDebug) _detec->_logText << "cv2" << endl;
 }
 
 void DetecTreatment::aff(QString name,qint64 address,int size)
 {
     _detec->_logText << "P:"<< name << " : " << address ;
-    if(size==0) _detec->_logText << " free" << endl;
+    if(size==0) _detec->_logText << " fr" << endl;
     else _detec->_logText << " s=" << size << endl;
 }
 
@@ -666,7 +672,7 @@ bool DetecTreatment::computeFFT(QString &wavFile)
     _msPerX =(float)(_fftHeightHalf*1000)/(_nbo*_soundFileInfo.samplerate*_timeExpansion); //Time: msec
     //_fIStream << _sonogramWidth*_msPerX/1000 << '\t';
     _khzPerY =(float)(_soundFileInfo.samplerate*_timeExpansion)/(float)(_fftHeight*1000); //Freq:khz
-    if(_detec->IDebug) _detec->_logText << "_sw=" << _sonogramWidth << endl;
+    if(_detec->IDebug) _detec->_logText << "_sw=" << _sonogramWidth << "_fH=" << _fftHeight << endl;
     if(_sonogramWidth*_msPerX < 10.0f)
     {
         if(_detec->_errorFileOpen) _detec->_errorStream << wavFile << ": fichier trop petit" << endl;
@@ -680,38 +686,59 @@ bool DetecTreatment::computeFFT(QString &wavFile)
         return  false;
     }
     sf_seek(_soundFile, 0, SEEK_END);
+    if(_detec->IDebug) _detec->_logText << "_c2" << endl;
     _plan = fftwf_plan_dft_1d( _fftHeight, _complexInput, _fftRes, FFTW_FORWARD, FFTW_ESTIMATE );
+    if(_detec->IDebug) _detec->_logText << "_c3" << endl;
     float fact1=2.0f*PI;
     float fact2=4.0f*PI;
     float quot1=_fftHeightHalf-1;
+    if(_detec->IDebug) _detec->_logText << "_fHH=" << _fftHeightHalf << endl;
+
     _limY = qMin(_fftHeightHalf,MAXHEIGHT);
+    if(_detec->IDebug) _detec->_logText << "_lY=" << _limY << endl;
+
     for (int i = 0 ; i < _fftHeightHalf ; i++)
     {
         _coeff[i] = 0.435f - 0.5f*cos(fact1*i/quot1)+ 0.065f*cos(fact2*i/quot1);
     }
+    if(_detec->IDebug) _detec->_logText << "_c4" << endl;
+
     for (int iLoop = 0 ; iLoop < _nbo; iLoop++)
     {
+        if(_detec->IDebug && _firstFile) _detec->_logText << "_il=" << iLoop << endl;
+
         iCount = 0;
         sf_seek(_soundFile, iLoop * _iOverlapMoving, SEEK_SET);
+        int nbb=0;
         while ((readcount = (int)sf_read_float(_soundFile, _data, _fftHeightHalf)))
         {
+            if(_detec->IDebug && _firstFile && nbb < 30000)
+            {
+                _detec->_logText << "n" << nbb << endl;
+                nbb++;
+            }
+
             for (int i = 0 ; i < _fftHeightHalf ; i++)
             {
                 _complexInput[i][0] =_data[i] * _coeff[i];
                 _complexInput[i][1] = 0.0f;
             }
+            if(_detec->IDebug && _firstFile) _detec->_logText << "1" << endl;
 
             for (int i = _fftHeightHalf ; i < _fftHeight ; i++)
             {
                 _complexInput[i][1] = 0.0f;
                 _complexInput[i][0] = 0.0f;
             }
+            if(_detec->IDebug && _firstFile) _detec->_logText << "2" << endl;
             fftwf_execute( _plan );
+            if(_detec->IDebug && _firstFile) _detec->_logText << "3" << endl;
             //£ float *sml;
             qint16 *sml;
             int jc=iCount*_nbo+iLoop;
             float b;
             //µ for(int i =0; i < _fftHeightHalf; i++)
+            if(_detec->IDebug && _firstFile) _detec->_logText << "4" << endl;
             for(int i =0; i < _limY;  i++)
             {
                 sml=_sonogramArray[i];
@@ -733,13 +760,18 @@ bool DetecTreatment::computeFFT(QString &wavFile)
 				sml[jc] = -5000;
 				}
             }
+            if(_detec->IDebug && _firstFile) _detec->_logText << "5" << endl;
             iCount++;
         }
     }
+    if(_detec->IDebug) _detec->_logText << "_c5" << endl;
     //µ for(int i =0; i < _fftHeightHalf; i++) _sonogramArray[i][_sonogramWidth-1]=0;
     for(int i =0; i < _limY; i++) _sonogramArray[i][_sonogramWidth-1]=0;
+    if(_detec->IDebug) _detec->_logText << "_c6" << endl;
     _energyMax = qMax(_energyMax, (double)0);
     sf_close (_soundFile);
+    if(_detec->IDebug) _detec->_logText << "_c7" << endl;
+    _firstFile = false;
     return true;
 }
 
@@ -1093,7 +1125,7 @@ void DetecTreatment::detectsParameter2()
 {
     float *oParam;
     float *oParamCrete[NCRETES];
-    if(_detec->IDebug) _detec->_logText << "dp2-1" << endl ;
+    //if(_detec->IDebug) _detec->_logText << "dp2-1" << endl ;
     int nbcris = _callsArray.size();
     if(nbcris< 1 || _maxCallWidth < 1 || _maxCallHeight < 1) return;
     int maxlarhau = _maxCallWidth;
@@ -1108,7 +1140,7 @@ void DetecTreatment::detectsParameter2()
      sortIntArrays(sortMp,nbcris,xMp);
      for(int i=0;i<nbcris;i++)  invMp[sortMp[i]]=i;
      //
-     if(_detec->IDebug) _detec->_logText << "-3" << "nbcris="<< nbcris << endl;
+     //if(_detec->IDebug) _detec->_logText << "-3" << "nbcris="<< nbcris << endl;
 
     for (int icri = 0 ; icri < nbcris ; icri++) //Execute for each call
     {
@@ -1178,7 +1210,6 @@ void DetecTreatment::detectsParameter2()
 
         }
         //if(_detec->IDebug) _detec->_logText << "ymin=" << ymin << " ymax=" << ymax << endl;  //+++
-        bool firstTime = false;
         eMoy = eTot / tailleforme;
         float erec; int xc;
         for(int k=0;k<=ymax-ymin;k++)
@@ -2401,13 +2432,11 @@ void DetecTreatment::detectsParameter2()
                                 if(x>xmin)
                                 {
                                     oParamCrete[jcrete][ELB2SB]  = (  ( (float)(y1-pc[0]))*_khzPerY)      / ( ((float)(x-xmin))*_msPerX );
-                                    //_detec->_logText << "elb2sb = " << ((float)(y1-pc[0]))/((float)(x-xmin)) << endl;
                                 }
                                 break;
                             }
                         }
                     }
-                   // _detec->_logText << "jcrete=" << jcrete << "fin série coudes" << endl << endl;
                     // -----------------------------------------------------------------------------------------
                     // nouveau paramètres (à réintégrer dans boucles du début de la méthode)
                     if(jcrete==0)
@@ -2928,7 +2957,7 @@ void DetecTreatment::detectsParameter2()
         oParam[Hlo_AmpDif] = 0.0f;
         oParam[Hlo_RSlope] = -9999.0f;
     }
-    if(_detec->IDebug) _detec->_logText  << "-9" << endl ;
+    //if(_detec->IDebug) _detec->_logText  << "-9" << endl ;
     for(int icri=0;icri<nbcris-1;icri++)
     {
         float freqmp = _paramsArray[icri][SH][FreqMP];
@@ -2992,7 +3021,7 @@ void DetecTreatment::detectsParameter2()
         }
     }
 
-    if(_detec->IDebug) _detec->_logText << "-10" << endl;
+    //if(_detec->IDebug) _detec->_logText << "-10" << endl;
     int nhsup,nhinf;
     for(int icri=0;icri<nbcris;icri++)
     {
@@ -3109,7 +3138,7 @@ void DetecTreatment::detectsParameter2()
         }
     }
     //
-    if(_detec->IDebug) _detec->_logText << "-11"  << endl;
+    //if(_detec->IDebug) _detec->_logText << "-11"  << endl;
     int nbb;
     float tsono = _sonogramWidth *  _msPerX;
     float interv[MAXCRI];
@@ -3271,11 +3300,11 @@ void DetecTreatment::detectsParameter2()
         } // fin if alreadytreated = false
     } // next icri
     //
-    if(_detec->IDebug) _detec->_logText << "-12" << endl;
+    //if(_detec->IDebug) _detec->_logText << "-12" << endl;
     // delete[] sortMp;
     // delete[] invMp;
     // delete[] xMp;
-    if(_detec->IDebug) _detec->_logText << "-dp2 fin" << endl;
+    //if(_detec->IDebug) _detec->_logText << "-dp2 fin" << endl;
 
 }
 

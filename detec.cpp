@@ -117,7 +117,7 @@ void Detec::run()
 
 void Detec::treatOneFile(QString wavFile,QString dirPath)
 {
-    _logText << "Début de traitement du fichier " << wavFile << " : " << " dans le répertoire " << dirPath
+    _logText << "Deb:" << wavFile << " : " << " rep:" << dirPath
                    << "   -   " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     QString pathFile = dirPath + '/' + wavFile;
     if(_modeDirFile == FILESMODE)
@@ -126,7 +126,7 @@ void Detec::treatOneFile(QString wavFile,QString dirPath)
         _detecTreatment->SetDirParameters(dirPath,_txtPath,false,"","");
     }
     _detecTreatment->CallTreatmentsForOneFile(wavFile,pathFile);
-    _logText << "Fin de traitement d'un fichier : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+    _logText << "Fin:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
 }
 
 bool Detec::createTxtFile(QString dirPath)

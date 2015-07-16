@@ -4,8 +4,10 @@
 using namespace std;
 
 
-Detec::Detec(QString processSuffixe,QString threadSuffixe,int modeDirFile,QString wavPath,QStringList wavFileList,QStringList wavRepList,int timeExpansion,bool withTimeCsv,int parVer,bool iDebug): QThread()
+Detec::Detec(DetecLaunch *pdl,QString processSuffixe,int iThread,QString threadSuffixe,int modeDirFile,QString wavPath,QStringList wavFileList,QStringList wavRepList,int timeExpansion,bool withTimeCsv,int parVer,bool iDebug): QThread()
 {
+    PDL = pdl;
+    IThread = iThread;
     _processSuffixe = processSuffixe;
     _threadSuffixe = threadSuffixe;
     _modeDirFile = modeDirFile;

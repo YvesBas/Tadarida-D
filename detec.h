@@ -16,19 +16,20 @@
 #define DIRECTORYMODE 1
 #define FILESMODE            2
 
-
+#include "deteclaunch.h"
 
 class Detec : public QThread
 {
     Q_OBJECT
 public:
-    Detec(QString,QString,int,QString,QStringList,QStringList,int,bool,int,bool);
+    Detec(DetecLaunch *pdl,QString,int,QString,int,QString,QStringList,QStringList,int,bool,int,bool);
     Detec(int);
     ~Detec();
     void                 run();
     bool                 InitializeDetec();
     bool                createTxtFile(QString);
     //
+    DetecLaunch *PDL;
     DetecTreatment  *_detecTreatment;
     int                     _logVersion;
     bool                 MustCompress;
@@ -48,6 +49,7 @@ public:
     int _numVer;
     bool _xmoitie;
     bool IDebug;
+    int IThread;
 
 private:
     int                   _numThread;

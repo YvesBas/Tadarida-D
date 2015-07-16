@@ -249,15 +249,31 @@ bool DetecLaunch::treat(int argc, char *argv[])
         }
     }
     // -----------------------------------------------------------------
-    // 5) Lancement des threads
+    // 6) Initialisation des variables fftw partagées
+    //_plan = fftwf_plan_dft_1d( _fftHeight, _complexInput, _fftRes, FFTW_FORWARD, FFTW_ESTIMATE );
+    int fh;
+    for(int j=0;j<_nbThreads;j++)
+    {
+        _fftRes[j] 		= ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * FFT_HEIGHT_MAX );
+        _complexInput[j]        = ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * FFT_HEIGHT_MAX );
+        for(int i=0;i<6;i++)
+        {
+            fh = pow(2,7+i);
+            // _logText << "plan " << i << " = " << fh << endl;
+            Plan[j][i] = fftwf_plan_dft_1d(fh, _complexInput[j], _fftRes[j], FFTW_FORWARD, FFTW_ESTIMATE );
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 7) Lancement des threads
     QString threadSuffixe = "";
     for(int i=0;i<_nbThreads;i++)
     {
         _logText << "Creation du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
 
         if(_nbThreads>1) threadSuffixe = QString("_") + QString::number(i+1);
-        if(_nbThreads==1) pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug);
-        else  pdetec[i] = new Detec(processSuffixe,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug);
+        if(_nbThreads==1) pdetec[i] = new Detec(this,processSuffixe,i,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug);
+        else  pdetec[i] = new Detec(this,processSuffixe,i,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug);
     // variables à initialiser
 
         _logText << "Lancement du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
@@ -266,7 +282,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
         SLEEP(500);
     }
     // -----------------------------------------------------------------
-    // 6) Boucle d'attente de fin des threads lancés par le processus en cours
+    // 8) Boucle d'attente de fin des threads lancés par le processus en cours
     int nbtr = _nbThreads;
     while(nbtr>0)
     {
@@ -291,7 +307,14 @@ bool DetecLaunch::treat(int argc, char *argv[])
     delete[] threadRunning;
     _logText << "Après delete des tableaux  " << endl;
     // -----------------------------------------------------------------
-    // 7) boucle d'attente de fin des autres processus
+    // 9) boucle d'attente de fin des autres processus
+    for(int j=0;j<_nbThreads;j++)
+    {
+        fftwf_free(_fftRes[j]);
+        fftwf_free(_complexInput[j]);
+    }
+    // -----------------------------------------------------------------
+    // 10) boucle d'attente de fin des autres processus
     // TODO : donner un temps d'attente limite proportionnel au nombre de fichiers
     if(_nCalled == 0 && _nbProcess > 1 && _nbPec>0)
     {

@@ -153,7 +153,7 @@ private:
     char *                       _charTabYX;
     char *                       _charYEmaxPerX;
     float                        *_coeff;
-    fftwf_complex*	             _complexInput;
+    //fftwf_complex*	             _complexInput;
     QFile                        _compressedParametersFile;
     QDataStream                  _compressedParametersStream;
     int                          _paramVersion;
@@ -169,7 +169,7 @@ private:
     QDataStream                  _expandParametersStream;
     bool                         *_flagGoodCol;
     int			                 _fftHeight;
-    fftwf_complex*	             _fftRes;
+    //fftwf_complex*	             _fftRes;
     float                        _freqCallMin;
     int                          _freqMin;
     int                          **_harmonic;
@@ -197,7 +197,11 @@ private:
     float**                      _valuesToCompressArray;
 
     int                          _patience;
-    fftwf_plan		             _plan;
+    //fftwf_plan		         _plan;
+    fftwf_plan		             *_pPlan;
+    int                          _iH;
+    fftwf_complex*	             _complexInput;
+    fftwf_complex*	             _fftRes;
     QString                      ResultSuffix;
     QString                      ResultCompressedSuffix;
     bool                         _saveTitleLine;

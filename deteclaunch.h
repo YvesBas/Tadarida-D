@@ -41,6 +41,7 @@ public:
     fftwf_complex*	             _complexInput[10];
     fftwf_complex*	             _fftRes[10];
     fftwf_plan		             Plan[10][6];
+    QTextStream  _logText;
 
 
 private slots:
@@ -63,7 +64,6 @@ private :
     int _nbProcess;
     int _nbPec;
     int _nCalled;
-    QTextStream  _logText;
     QFile _logFile;
     int _paramVersion;
 };

@@ -190,7 +190,6 @@ bool DetecLaunch::treat(int argc, char *argv[])
     _logText.setDevice(&_logFile);
     _logText << "Idebug=" << IDebug << endl;
     _logText << "Lancement TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-    _logText << "sizeof(char,int,float) = " << sizeof(char) << " , " << sizeof(int) << " , " << sizeof(float) << endl;
     // -----------------------------------------------------------------
     // 4) Démarrage des autres process si nécessaire
     if(_nbProcess>1 && _nCalled == 0)

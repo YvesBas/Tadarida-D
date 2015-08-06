@@ -80,6 +80,8 @@ private:
     int                  _highThreshold;
     int                  _jumpThreshold;
     int                 _lowThreshold;
+    int                  _highThreshold2;
+    int                 _lowThreshold2;
     int                 _qN;
     int                 _qR;
     int                 *_tabr1;

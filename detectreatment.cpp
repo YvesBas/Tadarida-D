@@ -2,9 +2,6 @@
 #include "detec.h"
 class Detec;
 
-// 21/4/2015
-// retirï¿½ les paramï¿½tres ajoutï¿½s rï¿½cemment
-
 
 ParamToSave::ParamToSave(int numTableau,int numPar,QString columnTitle)
 {
@@ -33,8 +30,12 @@ ParamToSave::~ParamToSave()
 DetecTreatment::DetecTreatment(Detec *pDet)
 {
     _detec = pDet;
+    _detec->_logText << "detec->IThread=" << _detec->IThread << endl;
+    //_complexInput = _detec->_complexInput;
+    //_fftRes = _detec->_fftRes;
     _complexInput = _detec->PDL->_complexInput[_detec->IThread];
     _fftRes = _detec->PDL->_fftRes[_detec->IThread];
+
     _firstFile = true;
     _freqCallMin=8.0f;
     _compressedVersion = 1;
@@ -182,7 +183,7 @@ void DetecTreatment::SetDirParameters(QString wavPath,QString txtPath,bool image
 void DetecTreatment::SetGlobalParameters(int timeExpansion,int seuilDetect,int seuilStop,
                                  int freqMin,int nbo,bool useValflag,
                                 int jumpThreshold,int widthBigControl,int widthLittleControl,
-                                int highThreshold,int lowThreshold,int qR,int qN,int parVer)
+                                int highThreshold,int lowThreshold,int highThreshold2,int lowThreshold2,int qR,int qN,int parVer)
 {
     _timeExpansion = timeExpansion;
     _detectionThreshold = seuilDetect;
@@ -195,6 +196,8 @@ void DetecTreatment::SetGlobalParameters(int timeExpansion,int seuilDetect,int s
     _widthLittleControl = widthLittleControl;
     _highThreshold = highThreshold;
     _lowThreshold = lowThreshold;
+    _highThreshold2 = highThreshold2;
+    _lowThreshold2 = lowThreshold2;
     _qR = qR;
     _qN = qN;
     _paramVersion = parVer;
@@ -532,11 +535,12 @@ void DetecTreatment::EndDetecTreatment()
 
 bool DetecTreatment::CallTreatmentsForOneFile(QString& wavFile,QString &pathFile)
 {
-    if(_detec->IDebug) _detec->_logText << "ca:" << endl;
+    _detec->_logText << "ca:" << endl;
     qint64 d0 = QDateTime::currentDateTime().toMSecsSinceEpoch();
    _wavFile = wavFile;
     int d[5];
     clearVars();
+    NError = -1;
     if (openWavFile(pathFile))
     {
         if(computeFFT(pathFile))
@@ -616,12 +620,14 @@ bool DetecTreatment::openWavFile(QString& wavFile)
     if (! (_soundFile = sf_open(wavFile.toStdString().c_str(), SFM_READ, &_soundFileInfo)))
     {
         if(_detec->_errorFileOpen) _detec->_errorStream << wavFile << ": " << sf_strerror (NULL) << endl;
+        NError=FNREC;
         return  false;
     }
     if (_soundFileInfo.channels > 1)
     {
         sf_close (_soundFile);
-        if(_detec->_errorFileOpen) _detec->_errorStream << wavFile << ": " << "multi-channel non traitï¿½" << endl;
+        if(_detec->_errorFileOpen) _detec->_errorStream << wavFile << ": " << "multi-channel non traite" << endl;
+        NError=MCNT;
         return  false;
     }
     // ï¿½ï¿½ï¿½ 27/05/2015
@@ -662,6 +668,7 @@ bool DetecTreatment::openWavFile(QString& wavFile)
 
 bool DetecTreatment::computeFFT(QString &wavFile)
 {
+    _detec->_logText << "cfft ithread=" << _detec->IThread << endl; // aj+
     if(_detec->IDebug) _detec->_logText << "_c1" << endl; // aj+
     int iCount;
     int readcount;
@@ -680,18 +687,21 @@ bool DetecTreatment::computeFFT(QString &wavFile)
     {
         if(_detec->_errorFileOpen) _detec->_errorStream << wavFile << ": fichier trop petit" << endl;
         _detec->_logText << "durï¿½e trop petite : " << _sonogramWidth*_msPerX << " ms" << endl;
+        NError=DTP;
         return  false;
     }
     if(_sonogramWidth > SONOGRAM_WIDTH_MAX)
     {
         if(_detec->_errorFileOpen) _detec->_errorStream << wavFile << ": fichier trop grand" << endl;
         _detec->_logText << wavFile << ": fichier trop grand" << endl;
+        NError=DTG;
         return  false;
     }
     sf_seek(_soundFile, 0, SEEK_END);
     if(_detec->IDebug) _detec->_logText << "_c2" << endl;
     //_plan = fftwf_plan_dft_1d( _fftHeight, _complexInput, _fftRes, FFTW_FORWARD, FFTW_ESTIMATE );
     _pPlan = &(_detec->PDL->Plan[_detec->IThread][_iH]);
+    //_pPlan = &(_detec->_pPlan[_iH]);
     if(_detec->IDebug) _detec->_logText << "_c3" << endl;
     float fact1=2.0f*PI;
     float fact2=4.0f*PI;
@@ -699,7 +709,7 @@ bool DetecTreatment::computeFFT(QString &wavFile)
     if(_detec->IDebug) _detec->_logText << "_fHH=" << _fftHeightHalf << endl;
 
     _limY = qMin(_fftHeightHalf,MAXHEIGHT);
-    if(_detec->IDebug) _detec->_logText << "_lY=" << _limY << endl;
+    //if(_detec->IDebug) _detec->_logText << "_lY=" << _limY << endl;
 
     for (int i = 0 ; i < _fftHeightHalf ; i++)
     {
@@ -721,6 +731,7 @@ bool DetecTreatment::computeFFT(QString &wavFile)
                 _detec->_logText << "n" << nbb << endl;
                 nbb++;
             }
+            //_detec->_logText << "adr. complexInput[0]="<<  (qint64)_complexInput << endl;
 
             for (int i = 0 ; i < _fftHeightHalf ; i++)
             {
@@ -771,7 +782,7 @@ bool DetecTreatment::computeFFT(QString &wavFile)
     if(_detec->IDebug) _detec->_logText << "_c5" << endl;
     //ï¿½ for(int i =0; i < _fftHeightHalf; i++) _sonogramArray[i][_sonogramWidth-1]=0;
     for(int i =0; i < _limY; i++) _sonogramArray[i][_sonogramWidth-1]=0;
-    if(_detec->IDebug) _detec->_logText << "_c6" << endl;
+    //if(_detec->IDebug) _detec->_logText << "_c6" << endl;
     _energyMax = qMax(_energyMax, (double)0);
     sf_close (_soundFile);
     if(_detec->IDebug) _detec->_logText << "_c7" << endl;
@@ -785,8 +796,15 @@ void DetecTreatment::correctNoise()
     _minY=(int)(((float)_freqMin)/((float)_khzPerY));
     _maxY=(int)(((float)FREQ_MAX)/((float)_khzPerY));
     //ï¿½ if(_maxY>_fftHeightHalf-1) _maxY = _fftHeightHalf-1;
+    // _detec->_logText << "1er _maxY = " << _maxY << endl;
     if(_maxY>_limY-1) _maxY = _limY-1;
-
+    if(_detec->IDebug)
+    {
+    _detec->_logText << "_minY = " << _minY << endl;
+    _detec->_logText << "_maxY = " << _maxY << endl;
+    _detec->_logText << "_freqMin = " << _freqMin << endl;
+    _detec->_logText << "FREQ_MAX = " << FREQ_MAX << endl;
+    }
     int son_min = EMIN,son_max = EMIN+199;
     // 1) neutralisation des colonnes de silence
     for (int x = 0 ; x < _sonogramWidth ; x++) _energyMoyCol[x] = 0.0f;
@@ -799,9 +817,16 @@ void DetecTreatment::correctNoise()
     float *pemc = _energyMoyCol;
     for (int x = 0 ; x < _sonogramWidth ; x++) *pemc++ /= diviseur;
 
-
+    /*
+    for (int x = 0 ; x < _sonogramWidth ; x++)
+    {
+        if((x & 255)==255)
+            _detec->_logText << x << ") e = " << _energyMoyCol[x] << endl;
+    }
+    */
 
     // //
+    bool unSaut = false;
 
     if(_sonogramWidth>10 && _useValflag)
     {
@@ -850,15 +875,27 @@ void DetecTreatment::correctNoise()
                         && averageBigNext >highThreshold)
                 {
 
+                    unSaut = true;
                     patience = 0;
                     if(valFlag==false)
                     {
+                        _detec->_logText << "YYY saut montant en (ms)" << x * _msPerX << " (x=" << x << ")"
+                                 << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                                 << "  après : " << averageLittleNext << " et " << averageBigNext
+                                 << endl;
+
                     }
 
                     if(valFlag==true && notYet==true
                             && averageLittleBefore < lowThreshold
                             && averageBigBefore < lowThreshold)
                     {
+                        _detec->_logText << "YYY saut montant en (ms)" << x * _msPerX << " (x=" << x << ")"
+                                 << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                                 << "  après : " << averageLittleNext << " et " << averageBigNext
+                                 << endl;
+                        _detec->_logText << "YYY     on redescend en false ce qui précède " << endl;
+
                         for(int j=x-1;j>=0;j--)
                         {
                             if(_flagGoodCol[j]==true) _flagGoodCol[j]=false;
@@ -885,7 +922,14 @@ void DetecTreatment::correctNoise()
                 if((averageBigNext-averageBigBefore)<-jumpThreshold
                         && averageBigNext<lowThreshold)
                 {
+                    unSaut = true;
                     patience = 0;
+                    _detec->_logText << "YYY saut descendant en (ms)" <<  x * _msPerX << " (x=" << x << ")"
+                             << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                             << "  après : " << averageLittleNext << " et " << averageBigNext
+                             << endl;
+                    if(valFlag==false)
+                        _detec->_logText << "YYY     non pris en compte puisque déjà false" << endl;
                     valFlag=false;
                     notYet =false;
                 }
@@ -899,6 +943,30 @@ void DetecTreatment::correctNoise()
     {
         for (int x = 0;x < _sonogramWidth;x++) _flagGoodCol[x]=true;
     }
+
+    int nff = 0;
+    if(unSaut)
+    {
+        for (int x = 0;x < _sonogramWidth;x++)
+        {
+            if(_flagGoodCol[x]==false)
+            {
+                if(_energyMoyCol[x]<_lowThreshold2) nff++;
+                else _flagGoodCol[x] = true;
+            }
+            else
+            {
+                if(_energyMoyCol[x]<_highThreshold2) {nff++; _flagGoodCol[x] = false;}
+            }
+        }
+    }
+
+    if(nff>0)
+    {
+        _detec->_logText << _wavPath << "\\" << _wavFile << "   nff = " << nff << endl;
+        _detec->PDL->_logText << _wavPath << "\\" << _wavFile << "   nff = " << nff << endl;
+    }
+
     // -----------------------------------------------------------------------------------
     // 2)
     int tval[200];
@@ -2496,7 +2564,7 @@ void DetecTreatment::detectsParameter2()
                                 {
                                     if((x-xmin)<(xmaitr-xmin)/4)
                                     {
-                                        if(e<(_highThreshold - _lowThreshold)) condRestart = true;
+                                        if(e<(_detectionThreshold - _stopThreshold)) condRestart = true;
                                         if(x>xmin+2 && pc[x-xmin-1]==0 && pc[x-xmin-2]==0) condRestart = true;
                                     }
                                 }
@@ -2583,7 +2651,9 @@ void DetecTreatment::detectsParameter2()
                             oParamCrete[jcrete][RAFP2]  = ratioFP2*_khzPerY;
                             oParamCrete[jcrete][RAFP3]  = ratioFP3*_khzPerY;
                             //
+                            if(xmaitr!=xdep)
                             oParamCrete[jcrete][SBMP]  = ( ((float)  (pc[xmaitr-xmin] - pc[xdep-xmin] ))*_khzPerY)  / (((float)(xmaitr-xdep))*_msPerX);
+                            if(xmaitr!=xfin)
                             oParamCrete[jcrete][SAMP]  = ( ((float)  (pc[xfin-xmin] - pc[xmaitr-xmin]))*_khzPerY)   / (((float)(xfin-xmaitr))*_msPerX);
                             oParamCrete[jcrete][SBAR]  = oParamCrete[jcrete][SAMP]  - oParamCrete[jcrete][SBMP];
                             //

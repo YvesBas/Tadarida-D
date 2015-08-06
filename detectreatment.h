@@ -32,7 +32,7 @@
 #define SONOGRAM_WIDTH_MIN 64
 
 //£ #define MAXCRI 2000
-#define MAXCRI 1000
+#define MAXCRI 1500
 #define NCRETES 5
 #define EMIN -100
 
@@ -67,6 +67,9 @@ enum NUMPAR {StTime,Dur,PrevSt,Fmax,Fmin,BW,FPk,FPkD,TPk,Slope,ISlope,HCF,FIF,TH
      RAHP2,RAHP4,RAHP8,RAHP16,RAHE2,RAHE4,RAHE8,RAHE16,
      NBPAR};
 
+enum NUMERROR {FNREC,MCNT,DTP,DTG,NTERRORS};
+
+
 class ParamToSave
 {
 public:
@@ -94,7 +97,7 @@ public:
     void InitializeDetecTreatment();
     void saveDatFile(QString wavFile);
     void SetDirParameters(QString,QString,bool,QString,QString);
-    void SetGlobalParameters(int,int,int,int,int,bool,int,int,int,int,int,int,int,int);
+    void SetGlobalParameters(int,int,int,int,int,bool,int,int,int,int,int,int,int,int,int,int);
     void sortFloatIndArray(float *,int,int *);
 
     QVector< ParamToSave >       _vectPar;
@@ -107,6 +110,8 @@ public:
     float                        _energyShapeThreshold;
     float                        _energyStopThreshold;
     char**                       _pointFlagsArray;
+    int NError;
+    int TabErrors[NTERRORS];
 
 
 private:
@@ -253,6 +258,8 @@ private:
     int _widthLittleControl;
     int _highThreshold;
     int _lowThreshold;
+    int _highThreshold2;
+    int _lowThreshold2;
     int _qR;
     int _qN;
     bool _fileProblem;
@@ -261,6 +268,7 @@ private:
     int *invMp;
     int *xMp;
     bool _firstFile;
+    //
 };
 
 #endif // DETECTREATMENT_H

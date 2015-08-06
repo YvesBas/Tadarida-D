@@ -34,8 +34,14 @@ Detec::Detec(DetecLaunch *pdl,QString processSuffixe,int iThread,QString threadS
     _jumpThreshold = 30;
     _widthBigControl = 60;
     _widthLittleControl = 5;
+    //_highThreshold = 10;
+    //_lowThreshold = -4;
     _highThreshold = 10;
-    _lowThreshold = -4;
+    _lowThreshold = 8;
+    _highThreshold2 = 0;
+    _lowThreshold2 = 10;
+
+
     _qR = 5;
     _qN = 5;
     _freqCallMin=8.0f;
@@ -46,7 +52,7 @@ Detec::Detec(DetecLaunch *pdl,QString processSuffixe,int iThread,QString threadS
     _detecTreatment->SetGlobalParameters(_timeExpansion,_detectionThreshold,_stopThreshold,
                                          _freqMin,_nbo,
                                          _useValflag,_jumpThreshold,_widthBigControl,_widthLittleControl,
-                                         _highThreshold,_lowThreshold,_qR,_qN,_paramVersion);
+                                         _highThreshold,_lowThreshold,_highThreshold2,_lowThreshold2,_qR,_qN,_paramVersion);
     if(_modeDirFile==DIRECTORYMODE) _detecTreatment->SetDirParameters(_wavPath,_txtPath,false,"","");
     _logText << "cd _wathPath="   << _wavPath << "     _txtPath="   << _txtPath << endl;
     _detecTreatment->InitializeDetecTreatment();

@@ -49,7 +49,7 @@ Detec::Detec(DetecLaunch *pdl,QString processSuffixe,int iThread,QString threadS
     _logText << "idebug = " << IDebug << endl;
     _detecTreatment = new DetecTreatment(this);
     _logText << "_timeExpansion = " << _timeExpansion << endl;
-    _detecTreatment->SetGlobalParameters(_timeExpansion,_detectionThreshold,_stopThreshold,
+    _detecTreatment->SetGlobalParameters(_timeExpansion,_timeExpansion,_detectionThreshold,_stopThreshold,
                                          _freqMin,_nbo,
                                          _useValflag,_jumpThreshold,_widthBigControl,_widthLittleControl,
                                          _highThreshold,_lowThreshold,_highThreshold2,_lowThreshold2,_qR,_qN,_paramVersion);

@@ -67,7 +67,7 @@ enum NUMPAR {StTime,Dur,PrevSt,Fmax,Fmin,BW,FPk,FPkD,TPk,Slope,ISlope,HCF,FIF,TH
      RAHP2,RAHP4,RAHP8,RAHP16,RAHE2,RAHE4,RAHE8,RAHE16,
      NBPAR};
 
-enum NUMERROR {FNREC,MCNT,DTP,DTG,NTERRORS};
+enum NUMERROR {FNREC,MCNT,DTP,DTG,TNT,NTERRORS};
 
 
 class ParamToSave
@@ -75,6 +75,7 @@ class ParamToSave
 public:
     ParamToSave(int,int,QString);
     ParamToSave(int,int,QString,int);
+    ParamToSave(int,int,QString,int,int);
     ParamToSave();
     ~ParamToSave();
 
@@ -83,6 +84,7 @@ public:
     QString ColumnTitle;
     QString InfoLabel;
     int NeedVer;
+    int LimVer;
 };
 
 
@@ -97,7 +99,7 @@ public:
     void InitializeDetecTreatment();
     void saveDatFile(QString wavFile);
     void SetDirParameters(QString,QString,bool,QString,QString);
-    void SetGlobalParameters(int,int,int,int,int,bool,int,int,int,int,int,int,int,int,int,int);
+    void SetGlobalParameters(int,int,int,int,int,int,bool,int,int,int,int,int,int,int,int,int,int);
     void sortFloatIndArray(float *,int,int *);
 
     QVector< ParamToSave >       _vectPar;
@@ -112,6 +114,9 @@ public:
     char**                       _pointFlagsArray;
     int NError;
     int TabErrors[NTERRORS];
+    bool                         *_flagGoodColInitial;
+    bool                         *_flagGoodCol;
+    bool _withSilence;
 
 
 private:
@@ -122,7 +127,7 @@ private:
     void correctNoise();
     void detectsParameter2();
     void initVectorParams();
-    bool openWavFile(QString &wavFile);
+    bool openWavFile(QString &);
     void saveParameters(const QString&);
     void saveCompressedParameters(const QString&);
     //void expandParameters(const QString&);
@@ -131,6 +136,7 @@ private:
     void sortFloatArray(float *,int);
     void sortIntArrays(int *,int,int *);
     void aff(QString,qint64,int);
+    bool determineLeftOrRight(QString &);
 
     // attributes
     Detec                        *_detec;
@@ -172,7 +178,6 @@ private:
     float                        *_energyMoyCol;
     QFile                        _expandParametersFile;
     QDataStream                  _expandParametersStream;
-    bool                         *_flagGoodCol;
     int			                 _fftHeight;
     //fftwf_complex*	             _fftRes;
     float                        _freqCallMin;
@@ -219,6 +224,8 @@ private:
     float                        *_tabY;
     float                        **_tabYX;
     int	                         _timeExpansion;
+    int	                         _timeExpansionLeft;
+    int	                         _timeExpansionRight;
     bool                         _treating;
     QFile                        _txtFile;
     QString                      _txtPath;
@@ -256,10 +263,10 @@ private:
     int _jumpThreshold;
     int _widthBigControl;
     int _widthLittleControl;
-    int _highThreshold;
-    int _lowThreshold;
-    int _highThreshold2;
-    int _lowThreshold2;
+    int _highThresholdJB;
+    int _lowThresholdJB;
+    int _lowThresholdC;
+    int _highThresholdC;
     int _qR;
     int _qN;
     bool _fileProblem;

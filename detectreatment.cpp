@@ -2,6 +2,9 @@
 #include "detec.h"
 class Detec;
 
+// 21/4/2015
+// retirï¿½ les paramï¿½tres ajoutï¿½s rï¿½cemment
+
 
 ParamToSave::ParamToSave(int numTableau,int numPar,QString columnTitle)
 {
@@ -9,6 +12,7 @@ ParamToSave::ParamToSave(int numTableau,int numPar,QString columnTitle)
     NumPar=numPar;
     ColumnTitle=columnTitle;
     NeedVer = 0;
+	LimVer = -1;
 }
 
 ParamToSave::ParamToSave(int numTableau,int numPar,QString columnTitle,int needVer)
@@ -17,6 +21,16 @@ ParamToSave::ParamToSave(int numTableau,int numPar,QString columnTitle,int needV
     NumPar=numPar;
     ColumnTitle=columnTitle;
     NeedVer = needVer;
+	LimVer = -1;
+}
+
+ParamToSave::ParamToSave(int numTableau,int numPar,QString columnTitle,int needVer,int limVer)
+{
+    NumTableau=numTableau;
+    NumPar=numPar;
+    ColumnTitle=columnTitle;
+    NeedVer = needVer;
+	LimVer = limVer;
 }
 
 ParamToSave::ParamToSave()
@@ -161,6 +175,8 @@ void DetecTreatment::InitializeDetecTreatment()
     if(_detec->IDebug) aff("_energyMoyCol",(qint64)_energyMoyCol,SONOGRAM_WIDTH_MAX*sizeof(float));
     _flagGoodCol = new bool[SONOGRAM_WIDTH_MAX];
     if(_detec->IDebug) aff("_flagGoodCol",(qint64)_flagGoodCol,SONOGRAM_WIDTH_MAX*sizeof(bool));
+    _flagGoodColInitial = new bool[SONOGRAM_WIDTH_MAX];
+    if(_detec->IDebug) aff("_flagGoodColInitial",(qint64)_flagGoodColInitial,SONOGRAM_WIDTH_MAX*sizeof(bool));
     sortMp = new int[MAXCRI];
     if(_detec->IDebug) aff("sortMp",(qint64)sortMp,MAXCRI*sizeof(int));
     invMp = new int[MAXCRI];
@@ -180,12 +196,13 @@ void DetecTreatment::SetDirParameters(QString wavPath,QString txtPath,bool image
     _datPath = datPath;
 }
 
-void DetecTreatment::SetGlobalParameters(int timeExpansion,int seuilDetect,int seuilStop,
+void DetecTreatment::SetGlobalParameters(int timeExpansionLeft,int timeExpansionRight,int seuilDetect,int seuilStop,
                                  int freqMin,int nbo,bool useValflag,
                                 int jumpThreshold,int widthBigControl,int widthLittleControl,
-                                int highThreshold,int lowThreshold,int highThreshold2,int lowThreshold2,int qR,int qN,int parVer)
+                                int highThresholdJB,int lowThresholdJB,int lowThresholdC,int highThresholdC,int qR,int qN,int parVer)
 {
-    _timeExpansion = timeExpansion;
+    _timeExpansionLeft = timeExpansionLeft;
+    _timeExpansionRight = timeExpansionRight;
     _detectionThreshold = seuilDetect;
     _stopThreshold = seuilStop;
     _freqMin = freqMin;
@@ -194,10 +211,10 @@ void DetecTreatment::SetGlobalParameters(int timeExpansion,int seuilDetect,int s
     _jumpThreshold = jumpThreshold;
     _widthBigControl = widthBigControl;
     _widthLittleControl = widthLittleControl;
-    _highThreshold = highThreshold;
-    _lowThreshold = lowThreshold;
-    _highThreshold2 = highThreshold2;
-    _lowThreshold2 = lowThreshold2;
+    _highThresholdJB = highThresholdJB;
+    _lowThresholdJB = lowThresholdJB;
+    _lowThresholdC = lowThresholdC;
+    _highThresholdC = highThresholdC;
     _qR = qR;
     _qN = qN;
     _paramVersion = parVer;
@@ -210,17 +227,17 @@ void DetecTreatment::initVectorParams()
     _vectPar.push_back(ParamToSave(SH,StTime,"StTime"));
     _vectPar.push_back(ParamToSave(SH,Dur,"Dur"));
     _vectPar.push_back(ParamToSave(SH,PrevSt,"PrevSt"));
-    _vectPar.push_back(ParamToSave(SH,Fmax,"Fmax"));
+    _vectPar.push_back(ParamToSave(SH,Fmax,"Fmax",0,1));  // suppr
     _vectPar.push_back(ParamToSave(SH,Fmin,"Fmin"));
     _vectPar.push_back(ParamToSave(SH,BW,"BW"));
-    _vectPar.push_back(ParamToSave(SH,FreqMP,"FreqMP"));
+    _vectPar.push_back(ParamToSave(SH,FreqMP,"FreqMP",0,1));  // suppr
     _vectPar.push_back(ParamToSave(SH,PosMP,"PosMP"));
-    _vectPar.push_back(ParamToSave(SH,FreqPkS,"FreqPkS"));
-    _vectPar.push_back(ParamToSave(SH,FreqPkM,"FreqPkM"));
-    _vectPar.push_back(ParamToSave(SH,PosPkS,"PosPkS"));
-    _vectPar.push_back(ParamToSave(SH,PosPkM,"PosPkM"));
-    _vectPar.push_back(ParamToSave(SH,FreqPkS2,"FreqPkM1"));
-    _vectPar.push_back(ParamToSave(SH,FreqPkM2,"FreqPkM2"));
+    _vectPar.push_back(ParamToSave(SH,FreqPkS,"FreqPkS",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,FreqPkM,"FreqPkM",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,PosPkS,"PosPkS",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,PosPkM,"PosPkM",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,FreqPkS2,"FreqPkM1",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(SH,FreqPkM2,"FreqPkM2",0,1));  // suppr
     _vectPar.push_back(ParamToSave(SH,PrevMP1,"PrevMP1"));
     _vectPar.push_back(ParamToSave(SH,PrevMP2,"PrevMP2"));
     _vectPar.push_back(ParamToSave(SH,NextMP1,"NextMP1"));
@@ -234,68 +251,74 @@ void DetecTreatment::initVectorParams()
     _vectPar.push_back(ParamToSave(SH,NoiseDown,"NoiseDown"));
     _vectPar.push_back(ParamToSave(SH,NoiseUp,"NoiseUp"));
     _vectPar.push_back(ParamToSave(SH,CVAmp,"CVAmp"));
-    _vectPar.push_back(ParamToSave(CO,Dur,"CO_Dur"));
-    _vectPar.push_back(ParamToSave(CO2,Dur,"CO2_Dur"));
-    _vectPar.push_back(ParamToSave(CM,Fmax,"CM_Fmax"));
-    _vectPar.push_back(ParamToSave(CS,Fmax,"CS_Fmax"));
+    _vectPar.push_back(ParamToSave(CO,Dur,"CO_Dur",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(CO2,Dur,"CO2_Dur",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(CM,Fmax,"CM_Fmax",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(CS,Fmax,"CS_Fmax",0,1));  // suppr
     //_vectPar.push_back(ParamToSave(CN,Fmax,"CN_Fmax"));
-    _vectPar.push_back(ParamToSave(CM,Fmin,"CM_Fmin"));
-    //_vectPar.push_back(ParamToSave(CS,Fmin,"CS_Fmin"));
-    _vectPar.push_back(ParamToSave(CN,Fmin,"CN_Fmin"));
-    _vectPar.push_back(ParamToSave(CM,BW,"CM_BW"));
-    _vectPar.push_back(ParamToSave(CS,BW,"CS_BW"));
-    _vectPar.push_back(ParamToSave(CN,BW,"CN_BW"));
-    // _vectPar.push_back(ParamToSave(CM,FPk,"CM_FPk"));
-    _vectPar.push_back(ParamToSave(CO2,FPk,"CO2_FPk"));
-    // _vectPar.push_back(ParamToSave(CM,FPkD,"CM_FPkD"));
+    _vectPar.push_back(ParamToSave(CM,Fmin,"CM_Fmin",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(CN,Fmin,"CN_Fmin",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(CM,BW,"CM_BW",0,1));   // suppr
+    _vectPar.push_back(ParamToSave(CS,BW,"CS_BW",0,1));   // suppr
+    _vectPar.push_back(ParamToSave(CN,BW,"CN_BW",0,1));   // suppr
+    _vectPar.push_back(ParamToSave(CO2,FPk,"CO2_FPk",0,1)); // suppr
     _vectPar.push_back(ParamToSave(CO2,FPkD,"CO2_FPkD"));
     //_vectPar.push_back(ParamToSave(CM,TPk,"CM_Ldom"));
     _vectPar.push_back(ParamToSave(CO2,TPk,"CO2_TPk"));
     for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,Slope,prefix[i]+"Slope"));
-    for(int i=CO;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,ISlope,prefix[i]+"ISlope",1));
+    for(int i=CO;i<=CO2;i++)
+        if(i==CO) _vectPar.push_back(ParamToSave(i,ISlope,prefix[i]+"ISlope",1,1)); // suppr
+       else _vectPar.push_back(ParamToSave(i,ISlope,prefix[i]+"ISlope",1));
 
-    for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,HCF,prefix[i]+"HCF"));
+    for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,HCF,prefix[i]+"HCF",0,1)); // suppr (5)
     for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,THCF,prefix[i]+"THCF"));
-    for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,FIF,prefix[i]+"FIF"));
-    for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,LCF,prefix[i]+"LCF"));
+    for(int i=CM;i<=CO2;i++)
+        if(i>=CO) _vectPar.push_back(ParamToSave(i,FIF,prefix[i]+"FIF",0,1)); // suppr (2)
+        else _vectPar.push_back(ParamToSave(i,FIF,prefix[i]+"FIF"));
+
+    for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,LCF,prefix[i]+"LCF",0,1)); // suppr (5)
     for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,UpSl,prefix[i]+"UpSl"));
     for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,LoSl,prefix[i]+"LoSl"));
-    _vectPar.push_back(ParamToSave(CM,StF,"CM_StF"));
-    _vectPar.push_back(ParamToSave(CM,EnF,"CM_EnF"));
+    _vectPar.push_back(ParamToSave(CM,StF,"CM_StF",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(CM,EnF,"CM_EnF",0,1)); // suppr
     for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,StSl,prefix[i]+"StSl"));
     for(int i=CM;i<=CO2;i++) _vectPar.push_back(ParamToSave(i,EnSl,prefix[i]+"EnSl"));
-    for(int i=CM;i<=CO2;i++)  _vectPar.push_back(ParamToSave(i,FISl,prefix[i]+"FPSl"));
+
+    for(int i=CM;i<=CO2;i++)
+        if(i==CM || i==CO2) _vectPar.push_back(ParamToSave(i,FISl,prefix[i]+"FPSl",0,1)); // suppr (2)
+        else _vectPar.push_back(ParamToSave(i,FISl,prefix[i]+"FPSl"));
+
     _vectPar.push_back(ParamToSave(CM,FISl,"CM_FISl"));
     _vectPar.push_back(ParamToSave(CO2,FISl,"CO2_FISl"));
-    for(int i=CM;i<=CN;i++) _vectPar.push_back(ParamToSave(i,CeF,prefix[i]+"CeF"));
-    _vectPar.push_back(ParamToSave(CM,B5dBBF,"CM_5dBBF"));
-    _vectPar.push_back(ParamToSave(CM,B5dBAF,"CM_5dBAF"));
+    for(int i=CM;i<=CN;i++) _vectPar.push_back(ParamToSave(i,CeF,prefix[i]+"CeF",0,1)); // suppr (3)
+    _vectPar.push_back(ParamToSave(CM,B5dBBF,"CM_5dBBF",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(CM,B5dBAF,"CM_5dBAF",0,1)); // suppr
     _vectPar.push_back(ParamToSave(CM,B5dBBW,"CM_5dBBW"));
     _vectPar.push_back(ParamToSave(CM,B5dBDur,"CM_5dBDur"));
 
-    _vectPar.push_back(ParamToSave(CO2,B5dBBF,"CO2_5dBBF"));
-    _vectPar.push_back(ParamToSave(CO2,B5dBAF,"CO2_5dBAF"));
+    _vectPar.push_back(ParamToSave(CO2,B5dBBF,"CO2_5dBBF",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(CO2,B5dBAF,"CO2_5dBAF",0,1)); // suppr
     _vectPar.push_back(ParamToSave(CO2,B5dBBW,"CO2_5dBBW"));
     _vectPar.push_back(ParamToSave(CO2,B5dBDur,"CO2_5dBDur"));
 
     _vectPar.push_back(ParamToSave(SH,Hup_RFMP,"Hup_RFMP"));
-    _vectPar.push_back(ParamToSave(SH,Hup_PosMP,"Hup_PosMP"));
-    _vectPar.push_back(ParamToSave(SH,Hup_PosSt,"Hup_PosSt"));
-    _vectPar.push_back(ParamToSave(SH,Hup_PosEn,"Hup_PosEn"));
+    _vectPar.push_back(ParamToSave(SH,Hup_PosMP,"Hup_PosMP",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,Hup_PosSt,"Hup_PosSt",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(SH,Hup_PosEn,"Hup_PosEn",0,1));  // suppr
     _vectPar.push_back(ParamToSave(SH,Hup_AmpDif,"Hup_AmpDif"));
-    _vectPar.push_back(ParamToSave(SH,Hup_RSlope,"Hup_RSlope"));
-    _vectPar.push_back(ParamToSave(SH,Hlo_RFMP,"Hlo_RFMP"));
-    _vectPar.push_back(ParamToSave(SH,Hlo_PosMP,"Hlo_PosMP"));
-    _vectPar.push_back(ParamToSave(SH,Hlo_PosSt,"Hlo_PosSt"));
+    _vectPar.push_back(ParamToSave(SH,Hup_RSlope,"Hup_RSlope",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,Hlo_RFMP,"Hlo_RFMP",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,Hlo_PosMP,"Hlo_PosMP",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(SH,Hlo_PosSt,"Hlo_PosSt",0,1));  // suppr
     _vectPar.push_back(ParamToSave(SH,Hlo_PosEn,"Hlo_PosEn"));
     _vectPar.push_back(ParamToSave(SH,Hlo_AmpDif,"Hlo_AmpDif"));
-    _vectPar.push_back(ParamToSave(SH,Hlo_RSlope,"Hlo_RSlope"));
+    _vectPar.push_back(ParamToSave(SH,Hlo_RSlope,"Hlo_RSlope",0,1)); // suppr
 
     _vectPar.push_back(ParamToSave(SH,Ramp_2_1,"Ramp_2_1"));
     _vectPar.push_back(ParamToSave(SH,Ramp_3_1,"Ramp_3_1"));
     _vectPar.push_back(ParamToSave(SH,Ramp_3_2,"Ramp_3_2"));
     _vectPar.push_back(ParamToSave(SH,Ramp_1_2,"Ramp_1_2"));
-    _vectPar.push_back(ParamToSave(SH,Ramp_4_3,"Ramp_4_3"));
+    _vectPar.push_back(ParamToSave(SH,Ramp_4_3,"Ramp_4_3",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,Ramp_2_3,"Ramp_2_3"));
     _vectPar.push_back(ParamToSave(SH,RAN_2_1,"RAN_2_1"));
     _vectPar.push_back(ParamToSave(SH,RAN_3_1,"RAN_3_1"));
@@ -305,7 +328,7 @@ void DetecTreatment::initVectorParams()
     _vectPar.push_back(ParamToSave(SH,RAN_2_3,"RAN_2_3"));
 
     _vectPar.push_back(ParamToSave(SH,HetX,"HetX"));
-    _vectPar.push_back(ParamToSave(SH,HetY,"HetY"));
+    _vectPar.push_back(ParamToSave(SH,HetY,"HetY",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,Dbl8,"Dbl8"));
     _vectPar.push_back(ParamToSave(SH,Stab,"Stab"));
 
@@ -313,15 +336,15 @@ void DetecTreatment::initVectorParams()
     _vectPar.push_back(ParamToSave(SH,HeiEM,"HeiEM"));
     _vectPar.push_back(ParamToSave(SH,HeiRT,"HeiRT"));
     _vectPar.push_back(ParamToSave(SH,HeiRM,"HeiRM"));
-    _vectPar.push_back(ParamToSave(SH,HeiETT,"HeiETT"));
+    _vectPar.push_back(ParamToSave(SH,HeiETT,"HeiETT",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,HeiEMT,"HeiEMT"));
     _vectPar.push_back(ParamToSave(SH,HeiRTT,"HeiRTT"));
     _vectPar.push_back(ParamToSave(SH,HeiRMT,"HeiRMT"));
-    _vectPar.push_back(ParamToSave(SH,MedInt,"MedInt"));
+    _vectPar.push_back(ParamToSave(SH,MedInt,"MedInt",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,Int25,"Int25"));
     _vectPar.push_back(ParamToSave(SH,Int75,"Int75"));
     _vectPar.push_back(ParamToSave(SH,RInt1,"RInt1"));
-    _vectPar.push_back(ParamToSave(SH,IntDev,"IntDev"));
+    _vectPar.push_back(ParamToSave(SH,IntDev,"IntDev",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,SmIntDev,"SmIntDev"));
     _vectPar.push_back(ParamToSave(SH,LgIntDev,"LgIntDev"));
     _vectPar.push_back(ParamToSave(SH,VarInt,"VarInt"));
@@ -330,79 +353,99 @@ void DetecTreatment::initVectorParams()
     _vectPar.push_back(ParamToSave(SH,RIntDev1,"RIntDev1"));
     _vectPar.push_back(ParamToSave(SH,EnStabSm,"EnStabSm"));
     _vectPar.push_back(ParamToSave(SH,EnStabLg,"EnStabLg"));
-    _vectPar.push_back(ParamToSave(SH,HetXr,"HetXr"));
+    _vectPar.push_back(ParamToSave(SH,HetXr,"HetXr",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,HetYr,"HetYr"));
-    _vectPar.push_back(ParamToSave(SH,HetYr2,"HetYr2"));
+    _vectPar.push_back(ParamToSave(SH,HetYr2,"HetYr2",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,HetCMC,"HetCMC"));
     _vectPar.push_back(ParamToSave(SH,HetCMD,"HetCMD"));
     _vectPar.push_back(ParamToSave(SH,HetCTC,"HetCTC"));
     _vectPar.push_back(ParamToSave(SH,HetCTD,"HetCTD"));
-    _vectPar.push_back(ParamToSave(SH,HetCMnP,"HetCMnP"));
+    _vectPar.push_back(ParamToSave(SH,HetCMnP,"HetCMnP",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,HetCMfP,"HetCMfP"));
-    _vectPar.push_back(ParamToSave(SH,HetCTnP,"HetCTnP"));
+    _vectPar.push_back(ParamToSave(SH,HetCTnP,"HetCTnP",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,HetCTfP,"HetCTfP"));
 
-    _vectPar.push_back(ParamToSave(SH,HetPicsMAD,"HetPicsMAD"));
+    _vectPar.push_back(ParamToSave(SH,HetPicsMAD,"HetPicsMAD",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,HetPicsMALD,"HetPicsMALD"));
     _vectPar.push_back(ParamToSave(SH,HetPicsMABD,"HetPicsMABD"));
     _vectPar.push_back(ParamToSave(SH,HetPicsMRBLD,"HetPicsMRLBD"));
-    _vectPar.push_back(ParamToSave(SH,HetPicsTAD,"HetPicsTAD"));
-    _vectPar.push_back(ParamToSave(SH,HetPicsTALD,"HetPicsTALD"));
+    _vectPar.push_back(ParamToSave(SH,HetPicsTAD,"HetPicsTAD",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,HetPicsTALD,"HetPicsTALD",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,HetPicsTABD,"HetPicsTABD"));
     _vectPar.push_back(ParamToSave(SH,HetPicsTRBLD,"HetPicsTRLBD"));
-    _vectPar.push_back(ParamToSave(SH,VDPicsM,"VDPicsM"));
-    _vectPar.push_back(ParamToSave(SH,VLDPicsM,"VLDPicsM"));
-    _vectPar.push_back(ParamToSave(SH,VBDPicsM,"VBDPicsM"));
-    _vectPar.push_back(ParamToSave(SH,VDPPicsM,"VDPPicsM"));
+    _vectPar.push_back(ParamToSave(SH,VDPicsM,"VDPicsM",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,VLDPicsM,"VLDPicsM",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,VBDPicsM,"VBDPicsM",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(SH,VDPPicsM,"VDPPicsM",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,VLDPPicsM,"VLDPPicsM"));
     _vectPar.push_back(ParamToSave(SH,VBDPPicsM,"VBDPPicsM"));
-    _vectPar.push_back(ParamToSave(SH,VDPicsT,"VDPicsT"));
-    _vectPar.push_back(ParamToSave(SH,VLDPicsT,"VLDPicsT"));
-    _vectPar.push_back(ParamToSave(SH,VBDPicsT,"VBDPicsT"));
-    _vectPar.push_back(ParamToSave(SH,VDPPicsT,"VDPPicsT"));
+    _vectPar.push_back(ParamToSave(SH,VDPicsT,"VDPicsT",0,1));  // suppr
+    _vectPar.push_back(ParamToSave(SH,VLDPicsT,"VLDPicsT",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,VBDPicsT,"VBDPicsT",0,1)); // suppr
+    _vectPar.push_back(ParamToSave(SH,VDPPicsT,"VDPPicsT",0,1)); // suppr
     _vectPar.push_back(ParamToSave(SH,VLDPPicsT,"VLDPPicsT"));
     _vectPar.push_back(ParamToSave(SH,VBDPPicsT,"VBDPPicsT"));
     {
         // bloc des nouveaux paramï¿½tres
         for(int i=CM;i<=CO2;i++)
         {
-            _vectPar.push_back(ParamToSave(i,SDC,prefix[i]+"SDC",1));
+            _vectPar.push_back(ParamToSave(i,SDC,prefix[i]+"SDC",1,1)); // suppr (5)
             _vectPar.push_back(ParamToSave(i,SDCR,prefix[i]+"SDCR",1));
         }
-        _vectPar.push_back(ParamToSave(CM,SDCRY,"CM_SDCRY",1));
-        _vectPar.push_back(ParamToSave(CS,SDCRY,"CS_SDCRY",1));
+        _vectPar.push_back(ParamToSave(CM,SDCRY,"CM_SDCRY",1,1)); // suppr
+        _vectPar.push_back(ParamToSave(CS,SDCRY,"CS_SDCRY",1,1)); // suppr
         _vectPar.push_back(ParamToSave(CM,SDCRXY,"CM_SDCRXY",1));
         _vectPar.push_back(ParamToSave(CS,SDCRXY,"CS_SDCRXY",1));
         //
 
         for(int i=CM;i<=CS;i++)
         {
-            _vectPar.push_back(ParamToSave(i,SDCL,prefix[i]+"SDCL",1));
-            _vectPar.push_back(ParamToSave(i,SDCLR,prefix[i]+"SDCLR",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRY,prefix[i]+"SDCLRY",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRXY,prefix[i]+"SDCLRXY",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRXY2,prefix[i]+"SDCLRXY2",1));
+            if(i==CS) _vectPar.push_back(ParamToSave(i,SDCL,prefix[i]+"SDCL",1,1)); // suppr
+            else _vectPar.push_back(ParamToSave(i,SDCL,prefix[i]+"SDCL",1));
+            _vectPar.push_back(ParamToSave(i,SDCLR,prefix[i]+"SDCLR",1,1)); // suppr (2)
+            _vectPar.push_back(ParamToSave(i,SDCLRY,prefix[i]+"SDCLRY",1,1)); // suppr (2)
+
+            _vectPar.push_back(ParamToSave(i,SDCLRXY,prefix[i]+"SDCLRXY",1,1));  // suppr (2)
+
+            _vectPar.push_back(ParamToSave(i,SDCLRXY2,prefix[i]+"SDCLRXY2",1,1)); // suppr (2)
             //
             _vectPar.push_back(ParamToSave(i,SDCLOP,prefix[i]+"SDCLOP",1));
             _vectPar.push_back(ParamToSave(i,SDCLROP,prefix[i]+"SDCLROP",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRYOP,prefix[i]+"SDCLRYOP",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRXYOP,prefix[i]+"SDCLRXYOP",1));
+
+            if(i==CM) _vectPar.push_back(ParamToSave(i,SDCLRYOP,prefix[i]+"SDCLRYOP",1,1)); // suppr
+            else _vectPar.push_back(ParamToSave(i,SDCLRYOP,prefix[i]+"SDCLRYOP",1));
+
+            _vectPar.push_back(ParamToSave(i,SDCLRXYOP,prefix[i]+"SDCLRXYOP",1,1)); // suppr (2)
             //
-            _vectPar.push_back(ParamToSave(i,SDCLWB,prefix[i]+"SDCLWB",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRWB,prefix[i]+"SDCLRWB",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRYWB,prefix[i]+"SDCLRYWB",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRXYWB,prefix[i]+"SDCLRXYWB",1));
+            if(i==CM) _vectPar.push_back(ParamToSave(i,SDCLWB,prefix[i]+"SDCLWB",1,1));//suppr
+            else _vectPar.push_back(ParamToSave(i,SDCLWB,prefix[i]+"SDCLWB",1));
+
+            if(i==CS) _vectPar.push_back(ParamToSave(i,SDCLRWB,prefix[i]+"SDCLRWB",1,1));//suppr
+            else _vectPar.push_back(ParamToSave(i,SDCLRWB,prefix[i]+"SDCLRWB",1));
+
+            _vectPar.push_back(ParamToSave(i,SDCLRYWB,prefix[i]+"SDCLRYWB",1,1)); // suppr (2)
+
+            _vectPar.push_back(ParamToSave(i,SDCLRXYWB,prefix[i]+"SDCLRXYWB",1,1)); // suppr (2)
             //
-            _vectPar.push_back(ParamToSave(i,SDCLOPWB,prefix[i]+"SDCLOPWB",1));
-            _vectPar.push_back(ParamToSave(i,SDCLROPWB,prefix[i]+"SDCLROPWB",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRYOPWB,prefix[i]+"SDCLRYOPWB",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRXYOPWB,prefix[i]+"SDCLRXYOPWB",1));
+            _vectPar.push_back(ParamToSave(i,SDCLOPWB,prefix[i]+"SDCLOPWB",1,1)); // suppr (2)
+
+            _vectPar.push_back(ParamToSave(i,SDCLROPWB,prefix[i]+"SDCLROPWB",1,1)); // suppr (2)
+
+            _vectPar.push_back(ParamToSave(i,SDCLRYOPWB,prefix[i]+"SDCLRYOPWB",1,1)); // suppr (2)
+
+            if(i==CS) _vectPar.push_back(ParamToSave(i,SDCLRXYOPWB,prefix[i]+"SDCLRXYOPWB",1,1)); // suppr
+            else _vectPar.push_back(ParamToSave(i,SDCLRXYOPWB,prefix[i]+"SDCLRXYOPWB",1));
             //
-            _vectPar.push_back(ParamToSave(i,SDCL_DNP,prefix[i]+"SDCL_DNP",1));
+            _vectPar.push_back(ParamToSave(i,SDCL_DNP,prefix[i]+"SDCL_DNP",1,1)); // suppr (2)
+
             _vectPar.push_back(ParamToSave(i,SDCLR_DNP,prefix[i]+"SDCLR_DNP",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRY_DNP,prefix[i]+"SDCLRY_DNP",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRXY_DNP,prefix[i]+"SDCLRXY_DNP",1));
-            _vectPar.push_back(ParamToSave(i,SDCLRXY2_DNP,prefix[i]+"SDCLRXY2_DNP",1));
+
+            if(i==CM) _vectPar.push_back(ParamToSave(i,SDCLRY_DNP,prefix[i]+"SDCLRY_DNP",1,1)); // suppr
+            else _vectPar.push_back(ParamToSave(i,SDCLRY_DNP,prefix[i]+"SDCLRY_DNP",1));
+
+            _vectPar.push_back(ParamToSave(i,SDCLRXY_DNP,prefix[i]+"SDCLRXY_DNP",1,1)); // suppr (2)
+
+            _vectPar.push_back(ParamToSave(i,SDCLRXY2_DNP,prefix[i]+"SDCLRXY2_DNP",1,1)); // suppr (2)
         }
         _vectPar.push_back(ParamToSave(CM,ELBPOS,"CM_ELBPOS",1));
         _vectPar.push_back(ParamToSave(CS,ELBPOS,"CS_ELBPOS",1));
@@ -414,25 +457,25 @@ void DetecTreatment::initVectorParams()
         _vectPar.push_back(ParamToSave(CM,ELB2SB,"CM_ELB2SB",1));
         _vectPar.push_back(ParamToSave(CS,ELB2SB,"CS_ELB2SB",1));
         //
-        _vectPar.push_back(ParamToSave(CM,RAF,"CM_RAF",1));
-        _vectPar.push_back(ParamToSave(CM,RAE,"CM_RAE",1));
+        _vectPar.push_back(ParamToSave(CM,RAF,"CM_RAF",1,1)); // suppr
+        _vectPar.push_back(ParamToSave(CM,RAE,"CM_RAE",1,1)); // suppr
         _vectPar.push_back(ParamToSave(CM,RAFE,"CM_RAFE",1));
-        _vectPar.push_back(ParamToSave(CM,RAFP,"CM_RAFP",1));
-        _vectPar.push_back(ParamToSave(CM,RAFP2,"CM_RAFP2",1));
+        _vectPar.push_back(ParamToSave(CM,RAFP,"CM_RAFP",1,1)); // suppr
+        _vectPar.push_back(ParamToSave(CM,RAFP2,"CM_RAFP2",1,1)); // suppr
         _vectPar.push_back(ParamToSave(CM,RAFP3,"CM_RAFP3",1));
         //
         _vectPar.push_back(ParamToSave(CM,SBMP,"CM_SBMP",1));
         _vectPar.push_back(ParamToSave(CM,SAMP,"CM_SAMP",1));
         _vectPar.push_back(ParamToSave(CM,SBAR,"CM_SBAR",1));
         //
-        _vectPar.push_back(ParamToSave(CM,RAHP2,"RAHP2",1));
-        _vectPar.push_back(ParamToSave(CM,RAHP4,"RAHP4",1));
-        _vectPar.push_back(ParamToSave(CM,RAHP8,"RAHP8",1));
-        _vectPar.push_back(ParamToSave(CM,RAHP16,"RAHP16",1));
-        _vectPar.push_back(ParamToSave(CM,RAHE2,"RAHE2",1));
+        _vectPar.push_back(ParamToSave(CM,RAHP2,"RAHP2",1,1)); // suppr
+        _vectPar.push_back(ParamToSave(CM,RAHP4,"RAHP4",1,1)); // suppr
+        _vectPar.push_back(ParamToSave(CM,RAHP8,"RAHP8",1,1)); // suppr
+        _vectPar.push_back(ParamToSave(CM,RAHP16,"RAHP16",1,1)); // suppr
+        _vectPar.push_back(ParamToSave(CM,RAHE2,"RAHE2",1,1)); // suppr
         _vectPar.push_back(ParamToSave(CM,RAHE4,"RAHE4",1));
-        _vectPar.push_back(ParamToSave(CM,RAHE8,"RAHE8",1));
-        _vectPar.push_back(ParamToSave(CM,RAHE16,"RAHE16",1));
+        _vectPar.push_back(ParamToSave(CM,RAHE8,"RAHE8",1,1)); // suppr
+        _vectPar.push_back(ParamToSave(CM,RAHE16,"RAHE16",1,1)); // suppr
     } // fin bloc des nouveaux paramï¿½tres
 }
 
@@ -523,6 +566,7 @@ void DetecTreatment::EndDetecTreatment()
     delete[] _energyMoyCol;
     if(_detec->IDebug) aff("_flagGoodCol",(qint64)_flagGoodCol,0);
     delete[] _flagGoodCol;
+    delete[] _flagGoodColInitial;
     if(_detec->IDebug) aff("sortMp",(qint64)sortMp,0);
     delete[] sortMp;
     if(_detec->IDebug) aff("invMp",(qint64)invMp,0);
@@ -615,22 +659,41 @@ void DetecTreatment::aff(QString name,qint64 address,int size)
     else _detec->_logText << " s=" << size << endl;
 }
 
-bool DetecTreatment::openWavFile(QString& wavFile)
+bool DetecTreatment::determineLeftOrRight(QString& wavFile)
 {
-    if (! (_soundFile = sf_open(wavFile.toStdString().c_str(), SFM_READ, &_soundFileInfo)))
+    int ct = wavFile.count("_");
+    QString toLook;
+    if(ct>2)
     {
-        if(_detec->_errorFileOpen) _detec->_errorStream << wavFile << ": " << sf_strerror (NULL) << endl;
+        for(int i=ct-1;i>=0;i--)
+        {
+            toLook = wavFile.section("_",i,i);
+            if(toLook.length()==1)  break;
+        }
+    }
+    else toLook = "-9";
+    _detec->_logText << "chaine examinée : " << toLook << endl;
+    if(toLook.toInt()==1) return(false);
+    return(true);
+}
+
+bool DetecTreatment::openWavFile(QString& pathFile)
+{
+
+    if (! (_soundFile = sf_open(pathFile.toStdString().c_str(), SFM_READ, &_soundFileInfo)))
+    {
+        if(_detec->_errorFileOpen) _detec->_errorStream << pathFile << ": " << sf_strerror (NULL) << endl;
         NError=FNREC;
         return  false;
     }
     if (_soundFileInfo.channels > 1)
     {
         sf_close (_soundFile);
-        if(_detec->_errorFileOpen) _detec->_errorStream << wavFile << ": " << "multi-channel non traite" << endl;
+        if(_detec->_errorFileOpen) _detec->_errorStream << pathFile << ": " << "multi-channel non traite" << endl;
         NError=MCNT;
         return  false;
     }
-    // ï¿½ï¿½ï¿½ 27/05/2015
+    // 27/05/2015
     if(_detec->ReprocessingMode)
     {
         if(_detec->_numVer > 19)
@@ -643,8 +706,35 @@ bool DetecTreatment::openWavFile(QString& wavFile)
             if(ate < 2) _timeExpansion = 1; else _timeExpansion = 10;
         }
     }
-    // fin ï¿½ï¿½ï¿½ 27/05/2015
+    else
+    {
+
+        if(determineLeftOrRight(_wavFile))
+        {
+            _timeExpansion = _timeExpansionLeft;
+            _detec->_logText << "prend le coef gauche =" << _timeExpansion << endl;
+
+        }
+        else
+        {
+            _timeExpansion = _timeExpansionRight;
+            _detec->_logText << "prend le coef droit =" << _timeExpansion << endl;
+        }
+    }
+    if(_timeExpansion<=0)
+    {
+        sf_close (_soundFile);
+        if(_detec->_errorFileOpen) _detec->_errorStream << _wavFile << ": facteur temporel non défini pour ce fichier" << endl;
+        _detec->_logText << _wavFile << ": facteur temporel non défini pour ce fichier" << endl;
+
+        NError=TNT;
+        return(false);
+    }
+    // fin 27/05/2015
     // edit yves - prise en compte tx ech Vigie Chiro
+    _detec->_logText << _wavFile << " : _samplerate*_timeExpansion = " << _soundFileInfo.samplerate*_timeExpansion
+                          << endl;
+
     if (_soundFileInfo.samplerate*_timeExpansion >= 2400000 ) {_fftHeight = 4096; _iH =5;}
     else {
         if (_soundFileInfo.samplerate*_timeExpansion >= 1200000 ) {_fftHeight = 2048;  _iH =4;}
@@ -669,7 +759,7 @@ bool DetecTreatment::openWavFile(QString& wavFile)
 bool DetecTreatment::computeFFT(QString &wavFile)
 {
     _detec->_logText << "cfft ithread=" << _detec->IThread << endl; // aj+
-    if(_detec->IDebug) _detec->_logText << "_c1" << endl; // aj+
+    //if(_detec->IDebug) _detec->_logText << "_c1" << endl; // aj+
     int iCount;
     int readcount;
     float a = 0.0f;
@@ -698,11 +788,11 @@ bool DetecTreatment::computeFFT(QString &wavFile)
         return  false;
     }
     sf_seek(_soundFile, 0, SEEK_END);
-    if(_detec->IDebug) _detec->_logText << "_c2" << endl;
+    //if(_detec->IDebug) _detec->_logText << "_c2" << endl;
     //_plan = fftwf_plan_dft_1d( _fftHeight, _complexInput, _fftRes, FFTW_FORWARD, FFTW_ESTIMATE );
     _pPlan = &(_detec->PDL->Plan[_detec->IThread][_iH]);
     //_pPlan = &(_detec->_pPlan[_iH]);
-    if(_detec->IDebug) _detec->_logText << "_c3" << endl;
+    //if(_detec->IDebug) _detec->_logText << "_c3" << endl;
     float fact1=2.0f*PI;
     float fact2=4.0f*PI;
     float quot1=_fftHeightHalf-1;
@@ -715,22 +805,24 @@ bool DetecTreatment::computeFFT(QString &wavFile)
     {
         _coeff[i] = 0.435f - 0.5f*cos(fact1*i/quot1)+ 0.065f*cos(fact2*i/quot1);
     }
-    if(_detec->IDebug) _detec->_logText << "_c4" << endl;
+    //if(_detec->IDebug) _detec->_logText << "_c4" << endl;
 
     for (int iLoop = 0 ; iLoop < _nbo; iLoop++)
     {
-        if(_detec->IDebug && _firstFile) _detec->_logText << "_il=" << iLoop << endl;
+        //if(_detec->IDebug && _firstFile) _detec->_logText << "_il=" << iLoop << endl;
 
         iCount = 0;
         sf_seek(_soundFile, iLoop * _iOverlapMoving, SEEK_SET);
         int nbb=0;
         while ((readcount = (int)sf_read_float(_soundFile, _data, _fftHeightHalf)))
         {
+            /*
             if(_detec->IDebug && _firstFile && nbb < 30000)
             {
                 _detec->_logText << "n" << nbb << endl;
                 nbb++;
             }
+            */
             //_detec->_logText << "adr. complexInput[0]="<<  (qint64)_complexInput << endl;
 
             for (int i = 0 ; i < _fftHeightHalf ; i++)
@@ -738,22 +830,22 @@ bool DetecTreatment::computeFFT(QString &wavFile)
                 _complexInput[i][0] =_data[i] * _coeff[i];
                 _complexInput[i][1] = 0.0f;
             }
-            if(_detec->IDebug && _firstFile) _detec->_logText << "1" << endl;
+            //if(_detec->IDebug && _firstFile) _detec->_logText << "1" << endl;
 
             for (int i = _fftHeightHalf ; i < _fftHeight ; i++)
             {
                 _complexInput[i][1] = 0.0f;
                 _complexInput[i][0] = 0.0f;
             }
-            if(_detec->IDebug && _firstFile) _detec->_logText << "2" << endl;
+            //if(_detec->IDebug && _firstFile) _detec->_logText << "2" << endl;
             fftwf_execute( *_pPlan );
-            if(_detec->IDebug && _firstFile) _detec->_logText << "3" << endl;
+            //if(_detec->IDebug && _firstFile) _detec->_logText << "3" << endl;
             //ï¿½ float *sml;
             qint16 *sml;
             int jc=iCount*_nbo+iLoop;
             float b;
             //ï¿½ for(int i =0; i < _fftHeightHalf; i++)
-            if(_detec->IDebug && _firstFile) _detec->_logText << "4" << endl;
+            //if(_detec->IDebug && _firstFile) _detec->_logText << "4" << endl;
             for(int i =0; i < _limY;  i++)
             {
                 sml=_sonogramArray[i];
@@ -775,17 +867,17 @@ bool DetecTreatment::computeFFT(QString &wavFile)
 				sml[jc] = -5000;
 				}
             }
-            if(_detec->IDebug && _firstFile) _detec->_logText << "5" << endl;
+            //if(_detec->IDebug && _firstFile) _detec->_logText << "5" << endl;
             iCount++;
         }
     }
-    if(_detec->IDebug) _detec->_logText << "_c5" << endl;
+    //if(_detec->IDebug) _detec->_logText << "_c5" << endl;
     //ï¿½ for(int i =0; i < _fftHeightHalf; i++) _sonogramArray[i][_sonogramWidth-1]=0;
     for(int i =0; i < _limY; i++) _sonogramArray[i][_sonogramWidth-1]=0;
     //if(_detec->IDebug) _detec->_logText << "_c6" << endl;
     _energyMax = qMax(_energyMax, (double)0);
     sf_close (_soundFile);
-    if(_detec->IDebug) _detec->_logText << "_c7" << endl;
+    //if(_detec->IDebug) _detec->_logText << "_c7" << endl;
     _firstFile = false;
     return true;
 }
@@ -796,37 +888,60 @@ void DetecTreatment::correctNoise()
     _minY=(int)(((float)_freqMin)/((float)_khzPerY));
     _maxY=(int)(((float)FREQ_MAX)/((float)_khzPerY));
     //ï¿½ if(_maxY>_fftHeightHalf-1) _maxY = _fftHeightHalf-1;
-    // _detec->_logText << "1er _maxY = " << _maxY << endl;
+    _detec->_logText << "1er _maxY = " << _maxY << endl;
     if(_maxY>_limY-1) _maxY = _limY-1;
-    if(_detec->IDebug)
-    {
+
     _detec->_logText << "_minY = " << _minY << endl;
     _detec->_logText << "_maxY = " << _maxY << endl;
     _detec->_logText << "_freqMin = " << _freqMin << endl;
     _detec->_logText << "FREQ_MAX = " << FREQ_MAX << endl;
-    }
+
     int son_min = EMIN,son_max = EMIN+199;
+
+    int minEmc = qMax((int)(20.0f/_khzPerY),_minY);
+    int maxEmc = qMin((int)(80.0f/_khzPerY),_maxY);
+
     // 1) neutralisation des colonnes de silence
     for (int x = 0 ; x < _sonogramWidth ; x++) _energyMoyCol[x] = 0.0f;
-    for(int y = _minY; y < _maxY ; y++)
+    //for(int y = _minY; y < _maxY ; y++)
+    int decalThreshold = 0;
+    if(minEmc < maxEmc)
     {
-        qint16 *fc = _sonogramArray[y];
-        for (int x = 0 ; x < _sonogramWidth ; x++) _energyMoyCol[x]  += (float)(*fc++);
-    }
-    float diviseur = 100.0f * ( (float) (_maxY - _minY) );
-    float *pemc = _energyMoyCol;
-    for (int x = 0 ; x < _sonogramWidth ; x++) *pemc++ /= diviseur;
+        float totEmc = 0.0f;
+        for(int y = minEmc; y < maxEmc ; y++)
+        {
+            qint16 *fc = _sonogramArray[y];
+            for (int x = 0 ; x < _sonogramWidth ; x++) _energyMoyCol[x]  += (float)(*fc++);
+        }
+        float diviseur = 100.0f * ( (float) (maxEmc - minEmc) );
+        float *pemc = _energyMoyCol;
+        for (int x = 0 ; x < _sonogramWidth ; x++) {*pemc /= diviseur; totEmc += (*pemc++);}
+        decalThreshold = (int)( ((totEmc/_sonogramWidth) - ((float)(_lowThresholdJB+_highThresholdJB)/2.0f))/4      );
 
+    }
+    _detec->_logText << "decal=" <<decalThreshold << endl;
+    if(_detec->IDebug) _detec->PDL->_logText << "decal=" <<decalThreshold << endl;
     /*
-    for (int x = 0 ; x < _sonogramWidth ; x++)
+    if(_detec->IDebug==true)
     {
-        if((x & 255)==255)
-            _detec->_logText << x << ") e = " << _energyMoyCol[x] << endl;
+        for (int x = 0 ; x < _sonogramWidth ; x++)
+        {
+            if((x & 127)==127)
+                _detec->_logText <<(int)( x*_msPerX) << ") e = " << _energyMoyCol[x] << endl;
+        }
     }
     */
 
     // //
     bool unSaut = false;
+    _withSilence = false;
+
+    //decalThreshold = 0;
+
+    int highThresholdJB = _highThresholdJB+decalThreshold;
+    int lowThresholdJB = _lowThresholdJB+decalThreshold;
+    int lowThresholdC = _lowThresholdC+decalThreshold;
+    int highThresholdC = _highThresholdC+decalThreshold;
 
     if(_sonogramWidth>10 && _useValflag)
     {
@@ -835,9 +950,7 @@ void DetecTreatment::correctNoise()
         int jumpThreshold = _jumpThreshold;
         int widthBigControl = _widthBigControl;
         int widthLittleControl = _widthLittleControl;
-        int highThreshold = _highThreshold;
-        int lowThreshold = _lowThreshold;
-        for (int x = 0 ; x <= widthBigControl ; x++) _flagGoodCol[x]=valFlag;
+        for (int x = 0 ; x <= widthBigControl ; x++) _flagGoodColInitial[x]=valFlag;
         float dif2Col,averageLittleBefore,averageLittleNext,averageBigBefore,averageBigNext;
         bool notYet = true;
         if(widthBigControl > _sonogramWidth/3)
@@ -860,7 +973,7 @@ void DetecTreatment::correctNoise()
             dif2Col = averageLittleNext - averageLittleBefore;
             // -- -- --
             if(dif2Col>jumpThreshold && patience>widthBigControl/3
-                    && averageLittleNext >highThreshold)
+                    && averageLittleNext >highThresholdJB)
             {
                 averageBigBefore = 0.0f;
                 averageBigNext   = 0.0f;
@@ -872,43 +985,52 @@ void DetecTreatment::correctNoise()
                 averageBigBefore /= widthBigControl;
                 averageBigNext   /= widthBigControl;
                 if((averageBigNext-averageBigBefore)>jumpThreshold
-                        && averageBigNext >highThreshold)
+                        && averageBigNext >highThresholdJB)
                 {
 
-                    unSaut = true;
                     patience = 0;
                     if(valFlag==false)
                     {
                         _detec->_logText << "YYY saut montant en (ms)" << x * _msPerX << " (x=" << x << ")"
-                                 << "  avant : " << averageLittleBefore << " et " << averageBigBefore
-                                 << "  après : " << averageLittleNext << " et " << averageBigNext
-                                 << endl;
-
+                                         << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                                         << "  après : " << averageLittleNext << " et " << averageBigNext
+                                         << endl;
+                        _detec->PDL->_logText << "YYY saut montant en (ms)" << x * _msPerX << " (x=" << x << ")"
+                                              << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                                              << "  après : " << averageLittleNext << " et " << averageBigNext
+                                              << endl;
+                        notYet =false;
+                        unSaut = true;
                     }
 
                     if(valFlag==true && notYet==true
-                            && averageLittleBefore < lowThreshold
-                            && averageBigBefore < lowThreshold)
+                            && averageLittleBefore < lowThresholdJB
+                            && averageBigBefore < lowThresholdJB)
                     {
                         _detec->_logText << "YYY saut montant en (ms)" << x * _msPerX << " (x=" << x << ")"
-                                 << "  avant : " << averageLittleBefore << " et " << averageBigBefore
-                                 << "  après : " << averageLittleNext << " et " << averageBigNext
-                                 << endl;
+                                         << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                                         << "  après : " << averageLittleNext << " et " << averageBigNext
+                                         << endl;
                         _detec->_logText << "YYY     on redescend en false ce qui précède " << endl;
+                        _detec->PDL->_logText << "YYY saut montant en (ms)" << x * _msPerX << " (x=" << x << ")"
+                                              << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                                              << "  après : " << averageLittleNext << " et " << averageBigNext
+                                              << endl;
 
                         for(int j=x-1;j>=0;j--)
                         {
-                            if(_flagGoodCol[j]==true) _flagGoodCol[j]=false;
+                            if(_flagGoodColInitial[j]==true) _flagGoodColInitial[j]=false;
                             else break;
                         }
+                        unSaut = true;
+                        notYet =false;
                     }
-                    notYet =false;
                     valFlag=true;
                 }
             }
             // -- -- --
             if(dif2Col<-jumpThreshold && patience>widthBigControl/3
-                    && averageLittleNext<lowThreshold)
+                    && averageLittleNext<lowThresholdJB)
             {
                 averageBigBefore = 0.0f;
                 averageBigNext   = 0.0f;
@@ -920,28 +1042,30 @@ void DetecTreatment::correctNoise()
                 averageBigBefore /= widthBigControl;
                 averageBigNext   /= widthBigControl;
                 if((averageBigNext-averageBigBefore)<-jumpThreshold
-                        && averageBigNext<lowThreshold)
+                        && averageBigNext<lowThresholdJB)
                 {
                     unSaut = true;
                     patience = 0;
                     _detec->_logText << "YYY saut descendant en (ms)" <<  x * _msPerX << " (x=" << x << ")"
-                             << "  avant : " << averageLittleBefore << " et " << averageBigBefore
-                             << "  après : " << averageLittleNext << " et " << averageBigNext
-                             << endl;
+                                     << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                                     << "  après : " << averageLittleNext << " et " << averageBigNext
+                                     << endl;
                     if(valFlag==false)
                         _detec->_logText << "YYY     non pris en compte puisque déjà false" << endl;
+                    else
+                        _detec->PDL->_logText << "YYY saut descendant en (ms)" <<  x * _msPerX << " (x=" << x << ")"
+                                              << "  avant : " << averageLittleBefore << " et " << averageBigBefore
+                                              << "  après : " << averageLittleNext << " et " << averageBigNext
+                                              << endl;
+
                     valFlag=false;
                     notYet =false;
                 }
             }
-            _flagGoodCol[x] = valFlag;
+            _flagGoodColInitial[x] = valFlag;
             patience ++;
         }
-        for (int x = _sonogramWidth-widthBigControl;x < _sonogramWidth;x++) _flagGoodCol[x]=valFlag;
-    }
-    else
-    {
-        for (int x = 0;x < _sonogramWidth;x++) _flagGoodCol[x]=true;
+        for (int x = _sonogramWidth-widthBigControl;x < _sonogramWidth;x++) _flagGoodColInitial[x]=valFlag;
     }
 
     int nff = 0;
@@ -949,22 +1073,86 @@ void DetecTreatment::correctNoise()
     {
         for (int x = 0;x < _sonogramWidth;x++)
         {
-            if(_flagGoodCol[x]==false)
+            if(_flagGoodColInitial[x]==false)
             {
-                if(_energyMoyCol[x]<_lowThreshold2) nff++;
+                if(_energyMoyCol[x]<highThresholdC) {nff++; _flagGoodCol[x]=false;}
                 else _flagGoodCol[x] = true;
             }
             else
             {
-                if(_energyMoyCol[x]<_highThreshold2) {nff++; _flagGoodCol[x] = false;}
+                if(_energyMoyCol[x]<lowThresholdC) {nff++; _flagGoodCol[x] = false;}
+                else _flagGoodCol[x]=true;
             }
         }
+        _withSilence = true;
+        // vérification de la somme des largeurs des colonnes en true
+        // si insuffisante : on rabaisse la barre de repassage en true
+        // si tj insuffisante : on annule...
+        if(nff*2 >_sonogramWidth)
+        {
+            // calcul des variables
+            for(int jpha=0;jpha<2;jpha++)
+            {
+                int totTrue = 0;
+                int maxTrue = 0;
+                int actualWidth = 0;
+                for (int x = 0;x < _sonogramWidth;x++)
+                {
+                    if(jpha==1 && _flagGoodCol[x]==false)
+                    {
+                        if(_energyMoyCol[x]>lowThresholdC) {nff--; _flagGoodCol[x]=true;}
+                    }
+                    if(_flagGoodCol[x]==true)
+                    {
+                        actualWidth++;
+                        totTrue++;
+                        if(actualWidth>maxTrue) maxTrue = actualWidth;
+                    }
+                    else actualWidth = 0;
+                }
+                // test
+                //if(maxTrue*10>_sonogramWidth || totTrue*5>_sonogramWidth)
+                if(maxTrue*10>_sonogramWidth)
+                {
+                    if(jpha==1)
+                    {
+                        if(nff==0)
+                        {
+                            _detec->PDL->_logText << "ZZZY disparition des zones de silence par abaissement de seuil sur " << _wavFile << endl;
+                            _withSilence = false;
+
+                        }
+                        _detec->PDL->_logText << "YYYZ diminution des zones de silence par abaissement de seuil sur " << _wavFile << endl;
+
+                    }
+                    break;
+
+                }
+                else
+                {
+                    if(jpha==1)
+                    {
+                        for (int x = 0;x < _sonogramWidth;x++) _flagGoodCol[x]=true;
+                        nff = 0;
+                        _withSilence = false;
+                        if(jpha==1) _detec->PDL->_logText << "ZZZY suppression des zones de silence trop dominantes sur " << _wavFile << endl;
+                    }
+                }
+            } // next jpha
+        }
+
+
+    }
+    else
+    {
+        for (int x = 0;x < _sonogramWidth;x++) _flagGoodColInitial[x]=true;
+        for (int x = 0;x < _sonogramWidth;x++) _flagGoodCol[x]=true;
     }
 
     if(nff>0)
     {
-        _detec->_logText << _wavPath << "\\" << _wavFile << "   nff = " << nff << endl;
-        _detec->PDL->_logText << _wavPath << "\\" << _wavFile << "   nff = " << nff << endl;
+        _detec->_logText << _wavPath << "\\" << _wavFile << " XXX  nff = " << nff << " sur " << _sonogramWidth << endl;
+        _detec->PDL->_logText << _wavPath << "\\" << _wavFile << " XXX   nff = " << nff << " sur " << _sonogramWidth << endl;
     }
 
     // -----------------------------------------------------------------------------------
@@ -3473,12 +3661,13 @@ void DetecTreatment::saveParameters(const QString& wavFile)
     fileStream << "Filename"<< '\t' << "CallNum"
                << '\t' << "Version"<< '\t' << "FileDur"<< '\t' << "SampleRate";
     for(int j=0;j<_numberCallParameters;j++)
-        if(_vectPar[j].NeedVer<=_paramVersion)  fileStream << '\t' << _vectPar[j].ColumnTitle;
+        if(_vectPar[j].NeedVer<=_paramVersion && (_vectPar[j].LimVer< 0 || _vectPar[j].LimVer>=_paramVersion))  
+		fileStream << '\t' << _vectPar[j].ColumnTitle;
     fileStream << endl;
     //float **parArray;
     //float u_f;
     float dur = (float)_sonogramWidth*_msPerX/1000;
-    float sr = (float)_soundFileInfo.samplerate;
+    float sr = (float)_soundFileInfo.samplerate*_timeExpansion;
     for(int i=0;i<_callsNumber;i++)
     {
         float **callArray = _paramsArray[i];
@@ -3489,7 +3678,8 @@ void DetecTreatment::saveParameters(const QString& wavFile)
             //u_f = callArray[_vectPar[j].NumTableau][_vectPar[j].NumPar];
             //u_f = ((float)qRound(u_f*100.0f))/100.0f;
             //_simpleParamsArray[i][j]=u_f;
-            if(_vectPar[j].NeedVer<=_paramVersion) fileStream << '\t' <<  callArray[_vectPar[j].NumTableau][_vectPar[j].NumPar];
+			if(_vectPar[j].NeedVer<=_paramVersion && (_vectPar[j].LimVer< 0 || _vectPar[j].LimVer>=_paramVersion))  
+			fileStream << '\t' <<  callArray[_vectPar[j].NumTableau][_vectPar[j].NumPar];
         }
         fileStream << endl;
     }
@@ -3520,7 +3710,9 @@ void DetecTreatment::saveDatFile(QString wavFile)
     _callMatrixStream << _detec->_userVersion;
     int nbcris = (int)_callsArray.size();
     _callMatrixStream << nbcris;
+    //_detec->_logText("savedat... lyi=")
     int lyi = qMin(_fftHeightHalf,_limY);
+
     _callMatrixStream << lyi;
     _callMatrixStream << (int)_detec->_xmoitie;
     _callMatrixStream << (float)_msPerX;
@@ -3591,6 +3783,17 @@ void DetecTreatment::saveDatFile(QString wavFile)
            _callMatrixStream << _inflexion3[(i*NCRETES+jcrete)*2]   << _inflexion3[(i*NCRETES+jcrete)*2+1];
         }
     } // next i
+    //
+    _callMatrixStream << _sonogramWidth;
+    _callMatrixStream << (int)_withSilence;
+    if(_withSilence)
+    {
+        for(int j=0;j<_sonogramWidth;j++)
+        {
+            _callMatrixStream << (qint8)_flagGoodCol[j] << (qint8)_flagGoodColInitial[j] << (qint8)_energyMoyCol[j];
+        }
+    }
+
     //_logText << "fin de saveDatFile " << endl;
     // -------------------
     _callMatrixFile.close();

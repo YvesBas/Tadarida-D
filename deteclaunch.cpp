@@ -17,7 +17,7 @@ bool DetecLaunch::treat(int argc, char *argv[])
     _nbProcess = 1;
     _nCalled = 0;
     _withTimeCsv = false;
-    _paramVersion = 0;
+    _paramVersion = 2;
     IDebug = false;
     // -----------------------------------------------------------------
     // 1) lecture des paramètres

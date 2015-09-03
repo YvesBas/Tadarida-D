@@ -1,7 +1,0 @@
-12/07/2015 - 13 h
-TadaridaD7.4
-version avec affichages des pointeurs initialisés
-plus réduction du nombre de pointeurs grâce à _charSonogramArray et _charPointFlagsArray
-...
-ok sur wav2
-à continuer à tester

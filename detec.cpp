@@ -46,7 +46,7 @@ Detec::Detec(DetecLaunch *pdl,QString processSuffixe,int iThread,QString threadS
     _qN = 5;
     _freqCallMin=8.0f;
     InitializeDetec();
-    _logText << "idebug = " << IDebug << endl;
+    //_logText << "idebug = " << IDebug << endl;
     _detecTreatment = new DetecTreatment(this);
     _logText << "_timeExpansion = " << _timeExpansion << endl;
     _detecTreatment->SetGlobalParameters(_timeExpansion,_timeExpansion,_detectionThreshold,_stopThreshold,
@@ -54,7 +54,7 @@ Detec::Detec(DetecLaunch *pdl,QString processSuffixe,int iThread,QString threadS
                                          _useValflag,_jumpThreshold,_widthBigControl,_widthLittleControl,
                                          _highThreshold,_lowThreshold,_highThreshold2,_lowThreshold2,_qR,_qN,_paramVersion);
     if(_modeDirFile==DIRECTORYMODE) _detecTreatment->SetDirParameters(_wavPath,_txtPath,false,"","");
-    _logText << "cd _wathPath="   << _wavPath << "     _txtPath="   << _txtPath << endl;
+    _logText << "_wathPath="   << _wavPath << "     _txtPath="   << _txtPath << endl;
     _detecTreatment->InitializeDetecTreatment();
 }
 
@@ -125,7 +125,7 @@ void Detec::run()
 
 void Detec::treatOneFile(QString wavFile,QString dirPath)
 {
-    _logText << "Deb:" << wavFile << " : " << " rep:" << dirPath
+    _logText << "Deb:" << wavFile << " : " << " r:" << dirPath
                    << "   -   " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     QString pathFile = dirPath + '/' + wavFile;
     if(_modeDirFile == FILESMODE)
@@ -146,7 +146,7 @@ bool Detec::createTxtFile(QString dirPath)
     {
         if(!reptxt.mkdir(_txtPath))
         {
-            _logText << "création du sous-répertoire "<< _txtPath << " impossible !" << endl;
+            _logText << "création srep "<< _txtPath << " impossible !" << endl;
             return(false);
         }
     }

@@ -30,7 +30,8 @@ HEADERS += \
     detec.h \
     detectreatment.h
 
-INCLUDEPATH += "C:/Program Files (x86)/Mega-Nerd/libsndfile/include" "Headers"
+INCLUDEPATH += "Headers"
 
-win32: LIBS += -L$$PWD/Libs/ -llibfftw3f-3 -llibsndfile-1
+LIBS += -L$$PWD/Libs/ -lfftw3f -lsndfile
+
 

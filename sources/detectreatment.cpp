@@ -46,7 +46,8 @@ DetecTreatment::DetecTreatment(Detec *pDet)
     _complexInput = _detec->PMainWindow->ComplexInput[_detec->IThread];
     _fftRes = _detec->PMainWindow->FftRes[_detec->IThread];
     _resultSuffix = QString("ta");
-    _resultCompressedSuffix = QString("tac");
+    if(LINWIN==1) _resultCompressedSuffix = QString("tac");
+    else _resultCompressedSuffix = QString("ta.gz");
     _paramVersion = 1; 
     initVectorParams();
 }
@@ -3651,13 +3652,14 @@ void DetecTreatment::saveCompressedParameters(const QString& wavFile)
 {
     QString txtFilePath = _txtPath+"/"+wavFile.left(wavFile.length()-3)+ _resultSuffix;
     QString compressedParametersPath = _txtPath+"/"+wavFile.left(wavFile.length()-3) + _resultCompressedSuffix;
+    if(_detec->IDebug) _detec->LogStream << "compressedParametersPath = " << compressedParametersPath << endl;
+    if(QFile::exists(compressedParametersPath)) QFile::remove(compressedParametersPath);
     int resu;
     if(LINWIN==1)
     {
         QString program = "7z";
         QStringList  arguments;
         arguments << "a" << "-tgzip" << compressedParametersPath <<  txtFilePath;
-        if(QFile::exists(compressedParametersPath)) QFile::remove(compressedParametersPath);
         resu = QProcess::execute(program,arguments);
         if(resu==0) QFile::remove(txtFilePath);
     }

@@ -17,7 +17,7 @@ bool DetecLaunch::Treat(int argc, char *argv[])
     _nbProcess = 1;
     _nCalled = 0;
     _withTimeCsv = false;
-    _paramVersion = 2;
+    _paramVersion = 1;  // updated 08/10/2016
     IDebug = false;
     _mustCompress = false;
     _modeFreq = 1;
@@ -163,7 +163,7 @@ bool DetecLaunch::Treat(int argc, char *argv[])
         _logFile.setFileName(logFilePath);
         _logFile.open(QIODevice::WriteOnly | QIODevice::Text);
         LogStream.setDevice(&_logFile);
-        LogStream << "Lancement de TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+        LogStream << "Launch TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     }
     if(_modeDirFile == NODETERMINED)
     {
@@ -199,8 +199,7 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
             _wavFileList = sdir.entryList(QStringList("*.wav"), QDir::Files);
             if(_launchRecord)
             {
-                LogStream << "iSerie = " << iSerie << " listsize=" << _wavFileList.size()  << " _wavPath=" << _wavPath
-                         << " " <<  QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+                // LogStream << "iSerie = " << iSerie << " listsize=" << _wavFileList.size()  << " _wavPath=" << _wavPath << " " <<  QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             }
             if(_wavFileList.isEmpty())
             {
@@ -294,7 +293,7 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
             LogStream.setDevice(&_logFile);
             LogStream << "_nCalled=" << _nCalled << endl;
             LogStream << "_nbProcess=" << _nbProcess << endl;
-            LogStream << "Lancement TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            LogStream << "Launch TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
         }
         // µµµµµ fin
         // -----------------------------------------------------------------
@@ -318,21 +317,19 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
                 connect(pProcess[l], SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(processFinished(int,QProcess::ExitStatus)));
                 QStringList arguments = argumentsBase;
                 arguments << "-called" << QString::number(l);
-                LogStream << "Avant lancement du processus " << l+1 << " "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
                 pProcess[l]->start(program,arguments);
-                LogStream << "Apres lancement du processus " << l+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
                 processRunning[l] = true;
                 QString endFilePath(logDirPath + QString("/end")+QString::number(l)+QString(".log"));
                 QFile endFile;
                 endFile.setFileName(endFilePath);
                 if(endFile.exists())
                 {
-                    LogStream << "Effacement initial du fichier " << endFilePath  << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-                    endFile.remove();
+
+			endFile.remove();
                 }
             }
-            LogStream << "Fin du demarrage des autres processus "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
 
+			
         }
         // -----------------------------------------------------------------
         // 5) Répartition entre les threads
@@ -382,13 +379,13 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
         QString threadSuffixe = "";
         for(int i=0;i<_nbThreads;i++)
         {
-            LogStream << "Creation du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            //LogStream << "Creation du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             if(_nbThreads>1) threadSuffixe = QString("_") + QString::number(i+1);
             if(_nbThreads==1) pdetec[i] = new Detec(this,processSuffixe,i,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug,_launchRecord,_mustCompress,_modeFreq);
             else  pdetec[i] = new Detec(this,processSuffixe,i,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug,_launchRecord,_mustCompress,_modeFreq);
 
         // variables à initialiser
-            LogStream << "Lancement du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+            //LogStream << "Lancement du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             pdetec[i]->start();
             threadRunning[i]=true;
             //SLEEP(500); mise en rem pour version 11.1
@@ -405,7 +402,7 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
         {
             int nfi = _nFilesPerTreatment;
             if(iSerie == _nSeries-1) nfi = _nRecords - (_nSeries - 1) * _nFilesPerTreatment;
-            LogStream << "Avant lancement de sox - nfi = " << nfi << " "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
             if(!lanceSox(iSerie,nfi,compteur))
             {
                 LogStream << "Unable to launch sox !" << endl;
@@ -413,7 +410,7 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
                 return(false);
             }
             compteur += nfi;
-            LogStream << "Retour de sox - compteur = " << compteur << " "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
             if(iSerie==0) continue;
         }
     }
@@ -429,19 +426,19 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
             {
                 threadRunning[i] = false;
                 nbtr--;
-                LogStream << "Détecté fin du thread " << i+1 << "delete  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-
+ 
+ 
                 delete pdetec[i];
-                LogStream << "Détecté fin du thread " << i+1 << " après delete  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-            }
+
+				}
         }
         SLEEP(20); // descendu de 100 à 20 pour version 11.1
     }
-    LogStream << "Delete des tableaux pdetec etc...  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
     delete[] pdetec;
     delete[] pWavFileList;
     delete[] threadRunning;
-    LogStream << "Après delete des tableaux  " << endl;
+
     // -----------------------------------------------------------------
     // 9) libération des variables des threads
     for(int j=0;j<_nbThreads;j++)
@@ -465,7 +462,7 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
                     endFile.setFileName(endFilePath);
                     if(endFile.exists())
                     {
-                        LogStream << "Détecté fin du processus " << i+1 << "  -  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+                        //LogStream << "Détecté fin du processus " << i+1 << "  -  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
                         processRunning[i] = false;
                         _nbPec--;
                     }
@@ -473,16 +470,12 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
             }
             SLEEP(200);
         }
-        LogStream << "Avant delete des processus.  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
         for(int i=1;i<_nbProcess;i++)
         {
-            LogStream << "Delete du processus " << i+1 << "  : "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
 
             delete pProcess[i];
-            LogStream << "Apres delete du processus " << i+1  << endl;
         }
         delete[] pProcess;
-        LogStream << "Après delete du tableau des processus  " << endl;
     }
 
     if(_nCalled > 0)
@@ -496,12 +489,16 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
         endText << "Fin du processus TadaridaD" << _nCalled << " : " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
         endFile.close();
     }
+
+
+
+
     // -----------------------------------------------------------------
     // µµµµµ debut
     if(_launchRecord && iSerie>0)
     {
         // TODO : récupérer les résultats de wavtrav... dans répertoire
-        LogStream << "Avant copie de txt "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
         QString taStockPath(QDir::current().path()+"/txt");
         QDir taStock(taStockPath);
         if(!taStock.exists()) if(!taStock.mkdir(taStockPath))
@@ -519,7 +516,7 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
             QFile taFile(taDirPath + "/" + taFileName);
             if(taFile.exists()) taFile.copy(taStockPath+"/"+taFileName);
         }
-        LogStream << "Apres copie de txt "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
         if(_wavStock)
         {
             QString wavStockPath(QDir::current().path()+"/wav");
@@ -546,7 +543,7 @@ for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
 }
 // µµµµµ fin
     // -----------------------------------------------------------------
-    LogStream << "Fin d'exécution TadaridaD" << processSuffixe << "  -  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+    LogStream << "End of TadaridaD" << processSuffixe << "  -  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     _logFile.close();
     return(true);
 
@@ -566,20 +563,22 @@ bool DetecLaunch::createTxtFile(QString dirPath)
 void DetecLaunch::processFinished(int ec,QProcess::ExitStatus es)
 {
     _nbPec--;
-    if(es==0) LogStream << "Fin de processus normale _ exitCode = " << ec << endl;
-    else LogStream << "Fin de processus avec crash" << endl;
+
+	
+	
+	
 }
 
 
 void DetecLaunch::processStarted()
 {
-    LogStream << "évt processStarted" << endl;
+
 }
 
 void DetecLaunch::processError(QProcess::ProcessError pe)
 {
     int ipe = (int)pe;
-    LogStream << "évt processError erreur = " << ipe << endl;
+
 }
 
 // µµµµµ debut
@@ -595,7 +594,7 @@ bool DetecLaunch::lanceSox(int iserie,int nfi,int compteur)
     else
     {
         // vider le répertoire
-        LogStream << "Avant vidage de repertoire"  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+
         QStringList listBefore = wavtrav.entryList(QStringList("*.wav"), QDir::Files);
         foreach(QString f,listBefore) wavtrav.remove(f);
         QString taTravPath(wavtravPath+"/txt");
@@ -607,8 +606,8 @@ bool DetecLaunch::lanceSox(int iserie,int nfi,int compteur)
             QStringList listTaBefore = taDir.entryList(QStringList("*.ta"), QDir::Files);
             foreach(QString f,listTaBefore) taDir.remove(f);
         }
-        LogStream << "Apres vidage de repertoire"  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-    }
+
+		}
     _wavTrav = wavtrav;
     QString program = "sox";
     // version 11.1 : un gros fichier à découper dans le thread !
@@ -618,11 +617,8 @@ bool DetecLaunch::lanceSox(int iserie,int nfi,int compteur)
     QString paraudio = "hw:1,0";
     if(!_audioName.isEmpty()) paraudio = QString("hw:") + _audioName;
     arguments << "-c" << "1" << "-t" << "alsa" << paraudio << fichierWav << "trim" << "0" << QString::number(_recordSize*nfi) ;
-    LogStream << "Lancement reel de sox - fichierwav = " << fichierWav << " "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     QProcess p;
     p.execute(program,arguments);
-    // SLEEP(_recordSize * 1000);
-    LogStream << "Retour du lancement reel de sox - fichierwav = " << fichierWav << " "  << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
 
   return(true);
 }

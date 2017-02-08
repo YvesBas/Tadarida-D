@@ -1,28 +1,32 @@
 #include "deteclaunch.h"
 #include "detec.h"
-
+using namespace std;
+#include <iostream>
 
 DetecLaunch::DetecLaunch(QObject *parent) : QObject(parent)
 {
+	// Deteclaunch : main class of tadaridaD (non graphic class)
 }
 
 DetecLaunch::~DetecLaunch()
 {
+
 }
 
 bool DetecLaunch::Treat(int argc, char *argv[])
 {
+    // Treat : this method manages the whole treatment
+	// Initializations
     _timeExpansion = 10;
     _nbThreads = 1;
-    _nbProcess = 1;
-    _nCalled = 0;
     _withTimeCsv = false;
-    _paramVersion = 1;  // updated 08/10/2016
+    _paramVersion = 1;  
     IDebug = false;
     _mustCompress = false;
     _modeFreq = 1;
-    // µµµµµ debut
-    _launchRecord = false; _wavStock = false;
+    _launchRecord = false; 
+	_wavStock = false;
+    _helpShown = false;
     _audioName = "";
     _modeDirFile = NODETERMINED;
     _recordSize = 5;
@@ -32,13 +36,11 @@ bool DetecLaunch::Treat(int argc, char *argv[])
     Detec **pdetec;
     QStringList   *pWavFileList;
     bool *threadRunning;
-    QProcess **pProcess;
     bool *processRunning;
-    QString processSuffixe;
     QString logDirPath;
-    // µµµµµ fin
-    // -----------------------------------------------------------------
-    // 1) lecture des paramètres
+    _nbTreatedFiles = 0;
+    _nbErrorFiles = 0;
+    // Use of parameters
     bool waitValue=false;
     int paramParam=PARAMNO;
     bool on_a_determine = false;
@@ -55,24 +57,15 @@ bool DetecLaunch::Treat(int argc, char *argv[])
             {
                 if(alire.right(1) == "x") {paramParam = PARAMEXPANSION; waitValue=true;}
                 if(alire.right(1) == "c") _mustCompress = true;
-                // if(alire.right(1)=="h") paramParam = PARAMHELP; // TODO...
+                if(alire.right(1)=="h") showHelp();
                 if(alire.right(1) == "t") {paramParam = PARAMNTHREADS; waitValue=true;}
-                if(alire.right(1) == "p") {paramParam = PARAMNPROCESS; waitValue=true;}
                 if(alire.right(1) == "s") _withTimeCsv = true;
                 if(alire.right(1) == "v") {paramParam = PARAMNVERSION; waitValue=true;}
                 if(alire.right(1) == "d") IDebug = true;
-                // µµµµµ debut
-
                 if(alire.right(1) == "r") {_launchRecord = true; paramParam = PARAMRECORD; waitValue=true;}
                 if(alire.right(1) == "a") {paramParam = PARAMAUDIO; waitValue=true;}
-
                 if(alire.right(1) == "w") _wavStock = true;
                 if(alire.right(1) == "f") {paramParam = PARAMFREQ; waitValue=true;}
-                // µµµµµ fin
-            }
-            else
-            {
-                if(alire=="-called")  {paramParam = PARAMNCALLED; waitValue=true;}
             }
         }
         else
@@ -89,22 +82,10 @@ bool DetecLaunch::Treat(int argc, char *argv[])
                 {
                     if(ok==true && (value > 1 && value <= 8)) _nbThreads = value;
                 }
-                /*
-                if(paramParam==PARAMNPROCESS)
-                {
-                    if(ok==true && (value > 1 && value <= 4)) _nbProcess = value;
-                }
-                // _nbProcess now blocked to 1 (use only nbThreads)
-                */
-                if(paramParam==PARAMNCALLED)
-                {
-                    if(ok==true && value > 0) _nCalled = value;
-                }
                 if(paramParam==PARAMNVERSION)
                 {
                     if(ok==true && value > 0) _paramVersion = value;
                 }
-                // µµµµµ debut
                 if(paramParam==PARAMRECORD)
                 {
                     if(ok==true && value > 0) _nRecords = value;
@@ -117,16 +98,12 @@ bool DetecLaunch::Treat(int argc, char *argv[])
                 {
                     if(ok==true && (value ==1 || value == 2)) _modeFreq = value;
                 }
-                // µµµµµ fin
             }
             else
             {
-                // QString firstArgument = QString(argv[1]);
                 if(!on_a_determine)
                 {
-                    // µµµµµ debut
                     determine = "";
-                    // µµµµµ fin
                     if(alire.length()>4) determine = alire.right(4).toLower();
                     if(determine == ".wav" ) _modeDirFile = FILESMODE;
                     else
@@ -136,417 +113,247 @@ bool DetecLaunch::Treat(int argc, char *argv[])
                     }
                 }
                 if(_modeDirFile == FILESMODE) firstList.append(alire);
-            } // fin du else waitvalue = true
+            }
             waitValue=false;
-        } // fin du cas non paramètre "-"
+        }
     }
     // -----------------------------------------------------------------
-    // µµµµµ debut
+    // _launchRecord = true : tadaridad launches sox to record sound files to process
     if(_launchRecord)
     {
-        // important : empêcher le multi-process si lancement de sox
-        _nbProcess = 1;
-        _nbThreads = 1; // nécessaire dans la version en cours en raison de la decoupe...
+        _nbThreads = 1;
         _nSeries = (_nRecords + _nFilesPerTreatment - 1)/ _nFilesPerTreatment;
         _modeDirFile = DIRECTORYMODE;
     }
     else _nSeries = 0;
-    // µµµµµ fin
     // -----------------------------------------------------------------
-    // 2) initialisations
+    // initializations
     logDirPath = QDir::currentPath()+"/log";
     QDir logDir(logDirPath);
     if(!logDir.exists()) logDir.mkdir(logDirPath);
-    if(_nCalled==0 && _nbProcess==1)
-    {
-        QString logFilePath(logDirPath + QString("/tadaridaD.log"));
-        _logFile.setFileName(logFilePath);
-        _logFile.open(QIODevice::WriteOnly | QIODevice::Text);
-        LogStream.setDevice(&_logFile);
-        LogStream << "Launch TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-    }
+    QString logFilePath(logDirPath + QString("/tadaridaD.log"));
+    _logFile.setFileName(logFilePath);
+    _logFile.open(QIODevice::WriteOnly | QIODevice::Text);
+    LogStream.setDevice(&_logFile);
+    if(!_helpShown) showInfo("Launch TadaridaD",true);
+    // the files to be processed are not entered: program stopped
     if(_modeDirFile == NODETERMINED)
     {
-        LogStream << "No file or folder to treat " << endl;
+        if(!_helpShown)
+        showInfo(QString("\nNo file or folder to treat ! You must enter :\n   >TadaridaD [optional setttings] [folder name or .wav files list to treat]\n"));
         _logFile.close();
         return(false);
     }
-// -----------------------------------------------------------------
-    // µµµµµ debut
-
-for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
-{
-    if(_launchRecord && iSerie>0)
+    // -----------------------------------------------------------------
+    // Main loop - single pass in standard mode (without using sox)
+    for(int iSerie = 0;iSerie<_nSeries+1;iSerie++)
     {
-        QString wavtravPath(QDir::current().path()+"/wavtrav");
-        if((iSerie&1)==1) wavtravPath += "1"; else  wavtravPath += "2";
-        _wavPath = wavtravPath;
-    }
-
-    if(!_launchRecord || iSerie>0)
-    {
-        if(_modeDirFile == DIRECTORYMODE)
+        if(_launchRecord && iSerie>0)
         {
-            QDir sdir(_wavPath);
-            if(!sdir.exists())
-            {
-                //logText << "répertoire "<< _wavPath << " non trouvé !" << endl;
-                //logFile.close();
-                LogStream << "Folder "<< _wavPath << " does not exist !" << endl;
-                _logFile.close();
-                return(false);
-            }
-            _wavFileList = sdir.entryList(QStringList("*.wav"), QDir::Files);
-            if(_launchRecord)
-            {
-                // LogStream << "iSerie = " << iSerie << " listsize=" << _wavFileList.size()  << " _wavPath=" << _wavPath << " " <<  QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-            }
-            if(_wavFileList.isEmpty())
-            {
-                //logText << "aucun fichier wav trouvé dans le répertoire "<< _wavPath << " !" << endl;
-                //return(false);
-            }
-            QString dirPath = sdir.absolutePath();
-            if(!createTxtFile(dirPath))
-            {
-                LogStream << "Unable to create txt directory !" << endl;
-                _logFile.close();
-                return(false);
-            }
+            QString wavtravPath(QDir::current().path()+"/wavtrav");
+            if((iSerie&1)==1) wavtravPath += "1"; else  wavtravPath += "2";
+            _wavPath = wavtravPath;
         }
-        else
+
+        if(!_launchRecord || iSerie>0)
         {
-            // _modeDirFile == FILESMODE
-            QFile f;
-            QDir d;
-            QString determine;
-            _nwf=0;
-            foreach(QString wf,firstList)
+            // creation of the list of files to be processed
+            // First case: a directory has been entered
+            if(_modeDirFile == DIRECTORYMODE)
             {
-                if(wf.length()>4) determine = wf.right(4).toLower();
-                else determine = "";
-                if(determine == ".wav" )
+                QDir sdir(_wavPath);
+                if(!sdir.exists())
                 {
-                    f.setFileName(wf);
-                    if(f.exists())
+                    showInfo(QString("Folder ")+_wavPath+" does not exist !");
+                    _logFile.close();
+                    return(false);
+                }
+                _wavFileList = sdir.entryList(QStringList("*.wav"), QDir::Files);
+                QString dirPath = sdir.absolutePath();
+                if(!createTxtFile(dirPath))
+                {
+                    showInfo("Unable to create txt directory !");
+                    _logFile.close();
+                    return(false);
+                }
+            }
+            else
+            {
+                // Second case: file names have been entered
+                QFile f;
+                QDir d;
+                QString determine;
+                _nwf=0;
+                foreach(QString wf,firstList)
+                {
+                    if(wf.length()>4) determine = wf.right(4).toLower();
+                    else determine = "";
+                    if(determine == ".wav" )
                     {
-                        QFileInfo finf(wf);
-                        d = finf.dir();
-                        if(d.exists())
+                        f.setFileName(wf);
+                        if(f.exists())
                         {
-                            _wavFileList.append(finf.fileName());
-                            _wavRepList.append(d.absolutePath());
-                            _nwf++;
+                            QFileInfo finf(wf);
+                            d = finf.dir();
+                            if(d.exists())
+                            {
+                                _wavFileList.append(finf.fileName());
+                                _wavRepList.append(d.absolutePath());
+                                _nwf++;
+                            }
                         }
                     }
                 }
             }
-        }
-        _nwf = _wavFileList.size();
-        if(_nwf==0)
-        {
-            LogStream << "No wav file to treat " << endl;
-            _logFile.close();
-            return(false);
-        }
-        // -----------------------------------------------------------------
-        //  3) Mise à jour de la liste pour le process en cours
-        if(_modeDirFile!=DIRECTORYMODE || _nwf < 3)  _nbProcess = 1;
-        else
-        {
-            if(_nwf <= _nbProcess ) _nbProcess = _nwf-1;
-        }
-        _wavFileListProcess.clear();
-        if(_nbProcess>1)
-        {
-            int c=0;
-            for(int j=0;j<_nwf;j++)
+            _nwf = _wavFileList.size();
+            if(_nwf==0)
             {
-                if(c==_nCalled)  _wavFileListProcess.append(_wavFileList.at(j));
-                c++;
-                if(c>=_nbProcess) c=0;
+                showInfo("No wav file to treat ");
+                _logFile.close();
+                return(false);
             }
-        }
-        else
-        {
-            _wavFileListProcess = _wavFileList;
-        }
-        _nwfp = _wavFileListProcess.size();
-        // µµµµµ debut
-        // mise en commentaire
-        // QProcess **pProcess;
-        // bool *processRunning;
-        processSuffixe = "";
-        // µµµµµ debut
-        // -------------------------
-        // µµµµµ debut
-        // logDirPath = QDir::currentPath()+"/log";
-        // QDir logDir(logDirPath);
-        //if(!logDir.exists()) logDir.mkdir(logDirPath);
-        // -------------------------
-        if(_nCalled>0 || _nbProcess > 1)
-        {
-            processSuffixe = QString::number(_nCalled+1);
-            QString logFilePath(logDirPath + QString("/tadaridaD")+processSuffixe+QString(".log"));
-            _logFile.setFileName(logFilePath);
-            _logFile.open(QIODevice::WriteOnly | QIODevice::Text);
-            LogStream.setDevice(&_logFile);
-            LogStream << "_nCalled=" << _nCalled << endl;
-            LogStream << "_nbProcess=" << _nbProcess << endl;
-            LogStream << "Launch TadaridaD - " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-        }
-        // µµµµµ fin
-        // -----------------------------------------------------------------
-        // -----------------------------------------------------------------
-        // 4) Démarrage des autres process si nécessaire
-        if(_nbProcess>1 && _nCalled == 0)
-        {
-            //
-            _nbPec = _nbProcess - 1;
-            pProcess = new QProcess*[_nbProcess];
-            processRunning = new bool[_nbProcess];
-            QString program = "TadaridaD.exe";
-            QStringList  argumentsBase;
-            for(int k=1;k<argc;k++) argumentsBase << QString(argv[k]);
-            // arguments << "a" << "-tgzip" << compressedParametersPath <<  txtFilePath;
-            for(int l=1;l<_nbProcess;l++)
+            // -----------------------------------------------------------------
+            // Distribution of files between threads
+            if(_modeDirFile!=DIRECTORYMODE || _nwf <2) _nbThreads = 1;
+            else
             {
-                pProcess[l] = new QProcess(this);
-                connect(pProcess[l], SIGNAL(started()),this, SLOT(processStarted()));
-                connect(pProcess[l], SIGNAL(error(QProcess::ProcessError)),this, SLOT(processError(QProcess::ProcessError)));
-                connect(pProcess[l], SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(processFinished(int,QProcess::ExitStatus)));
-                QStringList arguments = argumentsBase;
-                arguments << "-called" << QString::number(l);
-                pProcess[l]->start(program,arguments);
-                processRunning[l] = true;
-                QString endFilePath(logDirPath + QString("/end")+QString::number(l)+QString(".log"));
-                QFile endFile;
-                endFile.setFileName(endFilePath);
-                if(endFile.exists())
+                if(_nwf < _nbThreads) _nbThreads = _nwf;
+            }
+            showInfo(QString::number(_nbThreads)+" thread(s) launched");
+            showInfo(QString("See log files in log folder"));
+            pdetec = new Detec*[_nbThreads];
+            pWavFileList = new QStringList[_nbThreads];
+            threadRunning = new bool[_nbThreads];
+            if(_nbThreads>0)
+            {
+                int c=0;
+                for(int j=0;j<_nwf;j++)
                 {
-
-			endFile.remove();
+                    pWavFileList[c].append(_wavFileList.at(j));
+                    c++;
+                    if(c>=_nbThreads) c=0;
                 }
             }
-
-			
-        }
-        // -----------------------------------------------------------------
-        // 5) Répartition entre les threads
-        if(_modeDirFile!=DIRECTORYMODE || _nwfp <2) _nbThreads = 1;
-        else
-        {
-            if(_nwfp < _nbThreads) _nbThreads = _nwfp;
-        }
-        LogStream << "Nbthreads = " << _nbThreads << endl;
-        // µµµµµ debut
-        // variables initialisées au début
-        pdetec = new Detec*[_nbThreads];
-        pWavFileList = new QStringList[_nbThreads];
-        threadRunning = new bool[_nbThreads];
-        // µµµµµ fin
-        //
-        // µµµµµ debut
-        //
-        if(_nbThreads>0)
-        // µµµµµ fin
-        {
-            int c=0;
-            for(int j=0;j<_nwfp;j++)
+            // -----------------------------------------------------------------
+            // Initializing shared fftw variables
+            int fh;
+            for(int j=0;j<_nbThreads;j++)
             {
-                pWavFileList[c].append(_wavFileListProcess.at(j));
-                c++;
-                if(c>=_nbThreads) c=0;
+                FftRes[j] 		= ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * FFT_HEIGHT_MAX );
+                ComplexInput[j]        = ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * FFT_HEIGHT_MAX );
+                for(int i=0;i<6;i++)
+                {
+                    fh = pow(2,7+i);
+                    Plan[j][i] = fftwf_plan_dft_1d(fh, ComplexInput[j], FftRes[j], FFTW_FORWARD, FFTW_ESTIMATE );
+                }
+            }
+            // -----------------------------------------------------------------
+            // Launching threads
+            QString threadSuffixe = "";
+            for(int i=0;i<_nbThreads;i++)
+            {
+                // creating a thread
+                if(_nbThreads>1) threadSuffixe = QString("_") + QString::number(i+1);
+                if(_nbThreads==1) pdetec[i] = new Detec(this,i,threadSuffixe,_modeDirFile,_wavPath,_wavFileList,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug,_launchRecord,_mustCompress,_modeFreq);
+                else  pdetec[i] = new Detec(this,i,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug,_launchRecord,_mustCompress,_modeFreq);
+                connect(pdetec[i], SIGNAL(info1(QString,int)),this, SLOT(detecInfoTreat(QString,int)));
+                // launching this thread
+                pdetec[i]->start();
+                threadRunning[i]=true;
             }
         }
         // -----------------------------------------------------------------
-        // 6) Initialisation des variables fftw partagées
-        //_plan = fftwf_plan_dft_1d( _fftHeight, _complexInput, _fftRes, FFTW_FORWARD, FFTW_ESTIMATE );
-        int fh;
+        // Mode of operation with sound recording: launch of sox
+        if(_launchRecord)
+        {
+            if(iSerie < _nSeries)
+            {
+                int nfi = _nFilesPerTreatment;
+                if(iSerie == _nSeries-1) nfi = _nRecords - (_nSeries - 1) * _nFilesPerTreatment;
+                if(!lanceSox(iSerie,nfi,compteur))
+                {
+                    showInfo("Unable to launch sox !");
+                    _logFile.close();
+                    return(false);
+                }
+                compteur += nfi;
+
+                if(iSerie==0) continue;
+            }
+        }
+        // -----------------------------------------------------------------
+        // Waiting for the end of threads
+        int nbtr = _nbThreads;
+        while(nbtr>0)
+        {
+            for(int i=0;i<_nbThreads;i++)
+            {
+                if(threadRunning[i]) if(!pdetec[i]->isRunning())
+                {
+                    threadRunning[i] = false;
+                    nbtr--;
+                    delete pdetec[i];
+                    }
+            }
+            SLEEP(20);
+        }
+        delete[] pdetec;
+        delete[] pWavFileList;
+        delete[] threadRunning;
+        // -----------------------------------------------------------------
+        // Release of thread memory allocations
         for(int j=0;j<_nbThreads;j++)
         {
-            FftRes[j] 		= ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * FFT_HEIGHT_MAX );
-            ComplexInput[j]        = ( fftwf_complex* ) fftwf_malloc( sizeof( fftwf_complex ) * FFT_HEIGHT_MAX );
-            for(int i=0;i<6;i++)
-            {
-                fh = pow(2,7+i);
-                // _logText << "plan " << i << " = " << fh << endl;
-                Plan[j][i] = fftwf_plan_dft_1d(fh, ComplexInput[j], FftRes[j], FFTW_FORWARD, FFTW_ESTIMATE );
-            }
+            fftwf_free(FftRes[j]);
+            fftwf_free(ComplexInput[j]);
         }
         // -----------------------------------------------------------------
-        // 7) Lancement des threads
-        QString threadSuffixe = "";
-        for(int i=0;i<_nbThreads;i++)
+        if(_launchRecord && iSerie>0)
         {
-            //LogStream << "Creation du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-            if(_nbThreads>1) threadSuffixe = QString("_") + QString::number(i+1);
-            if(_nbThreads==1) pdetec[i] = new Detec(this,processSuffixe,i,threadSuffixe,_modeDirFile,_wavPath,_wavFileListProcess,_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug,_launchRecord,_mustCompress,_modeFreq);
-            else  pdetec[i] = new Detec(this,processSuffixe,i,threadSuffixe,_modeDirFile,_wavPath,pWavFileList[i],_wavRepList,_timeExpansion,_withTimeCsv,_paramVersion,IDebug,_launchRecord,_mustCompress,_modeFreq);
-
-        // variables à initialiser
-            //LogStream << "Lancement du thread " << i+1 << " " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-            pdetec[i]->start();
-            threadRunning[i]=true;
-            //SLEEP(500); mise en rem pour version 11.1
-        }
-    // µµµµµ debut
-    } // condition _launchRecord == false || iSerie>0
-    // µµµµµ fin
-    // -----------------------------------------------------------------
-    // 7,5) Lancement de sox
-    // µµµµµ debut
-    if(_launchRecord)
-    {
-        if(iSerie < _nSeries)
-        {
-            int nfi = _nFilesPerTreatment;
-            if(iSerie == _nSeries-1) nfi = _nRecords - (_nSeries - 1) * _nFilesPerTreatment;
-
-            if(!lanceSox(iSerie,nfi,compteur))
+            // Copy of files in the case of live recordings
+            QString taStockPath(QDir::current().path()+"/txt");
+            QDir taStock(taStockPath);
+            if(!taStock.exists()) if(!taStock.mkdir(taStockPath))
             {
-                LogStream << "Unable to launch sox !" << endl;
+                showInfo("Unable to create txt directory !");
                 _logFile.close();
                 return(false);
             }
-            compteur += nfi;
-
-            if(iSerie==0) continue;
-        }
-    }
-    // µµµµµ fin
-    // -----------------------------------------------------------------
-    // 8) Boucle d'attente de fin des threads lancés par le processus en cours
-    int nbtr = _nbThreads;
-    while(nbtr>0)
-    {
-        for(int i=0;i<_nbThreads;i++)
-        {
-            if(threadRunning[i]) if(!pdetec[i]->isRunning())
+            QString taDirPath =  _wavPath+"/txt";
+            QDir taDir(taDirPath);
+            if(!taDir.exists()) return(false);
+            QStringList taList = taDir.entryList(QStringList("*.ta"), QDir::Files);
+            foreach(QString taFileName, taList)
             {
-                threadRunning[i] = false;
-                nbtr--;
- 
- 
-                delete pdetec[i];
-
-				}
-        }
-        SLEEP(20); // descendu de 100 à 20 pour version 11.1
-    }
-
-    delete[] pdetec;
-    delete[] pWavFileList;
-    delete[] threadRunning;
-
-    // -----------------------------------------------------------------
-    // 9) libération des variables des threads
-    for(int j=0;j<_nbThreads;j++)
-    {
-        fftwf_free(FftRes[j]);
-        fftwf_free(ComplexInput[j]);
-    }
-    // -----------------------------------------------------------------
-    // 10) boucle d'attente de fin des autres processus
-    // TODO : donner un temps d'attente limite proportionnel au nombre de fichiers
-    if(_nCalled == 0 && _nbProcess > 1 && _nbPec>0)
-    {
-        while(_nbPec>0)
-        {
-            for(int i=1;i<_nbProcess;i++)
+                QFile taFile(taDirPath + "/" + taFileName);
+                if(taFile.exists()) taFile.copy(taStockPath+"/"+taFileName);
+            }
+            // conservation of .wav files (-w option)
+            if(_wavStock)
             {
-                if(processRunning[i])
+                QString wavStockPath(QDir::current().path()+"/wav");
+                QDir wavStock(wavStockPath);
+                if(!wavStock.exists()) if(!wavStock.mkdir(wavStockPath))
                 {
-                    QString endFilePath(logDirPath + QString("/end")+QString::number(i)+QString(".log"));
-                    QFile endFile;
-                    endFile.setFileName(endFilePath);
-                    if(endFile.exists())
-                    {
-                        //LogStream << "Détecté fin du processus " << i+1 << "  -  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-                        processRunning[i] = false;
-                        _nbPec--;
-                    }
+                    showInfo("Unable to create wav directory !");
+                    _logFile.close();
+                    return(false);
+                }
+                // list re-created after cutting of files by thread
+                QDir sdir(_wavPath);
+                if(sdir.exists()) _wavFileList = sdir.entryList(QStringList("*.wav"), QDir::Files);
+                foreach(QString wavFileName,_wavFileList)
+                {
+                    QFile wavFile(_wavPath + "/" + wavFileName);
+                    if(wavFile.exists()) wavFile.copy(wavStockPath+"/"+wavFileName);
                 }
             }
-            SLEEP(200);
         }
-        for(int i=1;i<_nbProcess;i++)
-        {
-
-            delete pProcess[i];
-        }
-        delete[] pProcess;
     }
-
-    if(_nCalled > 0)
-    {
-        QString endFilePath(logDirPath + QString("/end")+QString::number(_nCalled)+QString(".log"));
-        QFile endFile;
-        QTextStream endText;
-        endFile.setFileName(endFilePath);
-        endFile.open(QIODevice::WriteOnly | QIODevice::Text);
-        endText.setDevice(&endFile);
-        endText << "Fin du processus TadaridaD" << _nCalled << " : " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
-        endFile.close();
-    }
-
-
-
-
     // -----------------------------------------------------------------
-    // µµµµµ debut
-    if(_launchRecord && iSerie>0)
-    {
-        // TODO : récupérer les résultats de wavtrav... dans répertoire
-
-        QString taStockPath(QDir::current().path()+"/txt");
-        QDir taStock(taStockPath);
-        if(!taStock.exists()) if(!taStock.mkdir(taStockPath))
-        {
-            LogStream << "Unable to create txt directory !" << endl;
-            _logFile.close();
-            return(false);
-        }
-        QString taDirPath =  _wavPath+"/txt";
-        QDir taDir(taDirPath);
-        if(!taDir.exists()) return(false);
-        QStringList taList = taDir.entryList(QStringList("*.ta"), QDir::Files);
-        foreach(QString taFileName, taList)
-        {
-            QFile taFile(taDirPath + "/" + taFileName);
-            if(taFile.exists()) taFile.copy(taStockPath+"/"+taFileName);
-        }
-
-        if(_wavStock)
-        {
-            QString wavStockPath(QDir::current().path()+"/wav");
-            QDir wavStock(wavStockPath);
-            if(!wavStock.exists()) if(!wavStock.mkdir(wavStockPath))
-            {
-                LogStream << "Unable to create wav directory !" << endl;
-                _logFile.close();
-                return(false);
-            }
-            // on refait _wavFileList car découpe faite dans detec :
-            QDir sdir(_wavPath);
-            if(sdir.exists()) _wavFileList = sdir.entryList(QStringList("*.wav"), QDir::Files);
-            foreach(QString wavFileName,_wavFileList)
-            {
-                QFile wavFile(_wavPath + "/" + wavFileName);
-                if(wavFile.exists()) wavFile.copy(wavStockPath+"/"+wavFileName);
-            }
-        }
-    }
-    // µµµµµ fin
-    // µµµµµ debut
-// fin de boucle iSerie
-}
-// µµµµµ fin
-    // -----------------------------------------------------------------
-    LogStream << "End of TadaridaD" << processSuffixe << "  -  " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
+    showInfo(QString("\nEnd of TadaridaD"),true,true,false);
     _logFile.close();
     return(true);
-
 }
 
 bool DetecLaunch::createTxtFile(QString dirPath)
@@ -560,30 +367,9 @@ bool DetecLaunch::createTxtFile(QString dirPath)
     return(true);
 }
 
-void DetecLaunch::processFinished(int ec,QProcess::ExitStatus es)
-{
-    _nbPec--;
-
-	
-	
-	
-}
-
-
-void DetecLaunch::processStarted()
-{
-
-}
-
-void DetecLaunch::processError(QProcess::ProcessError pe)
-{
-    int ipe = (int)pe;
-
-}
-
-// µµµµµ debut
 bool DetecLaunch::lanceSox(int iserie,int nfi,int compteur)
 {
+    // launching sox to record the sound files to be processed
     QString wavtravPath(QDir::current().path()+"/wavtrav");
     if((iserie&1)==0) wavtravPath += "1"; else  wavtravPath += "2";
     QDir wavtrav(wavtravPath);
@@ -593,8 +379,6 @@ bool DetecLaunch::lanceSox(int iserie,int nfi,int compteur)
     }
     else
     {
-        // vider le répertoire
-
         QStringList listBefore = wavtrav.entryList(QStringList("*.wav"), QDir::Files);
         foreach(QString f,listBefore) wavtrav.remove(f);
         QString taTravPath(wavtravPath+"/txt");
@@ -610,7 +394,7 @@ bool DetecLaunch::lanceSox(int iserie,int nfi,int compteur)
 		}
     _wavTrav = wavtrav;
     QString program = "sox";
-    // version 11.1 : un gros fichier à découper dans le thread !
+    // a big file has to be cut off in the thread
     QString fichierWav = wavtravPath + "/f" + QString::number(compteur+1) + ".wav";
     QStringList  arguments;
     // arguments << "-c" << "1" << "-d" << fichierWav << "trim" << "0" << QString::number(_recordSize*nfi) ;
@@ -619,7 +403,35 @@ bool DetecLaunch::lanceSox(int iserie,int nfi,int compteur)
     arguments << "-c" << "1" << "-t" << "alsa" << paraudio << fichierWav << "trim" << "0" << QString::number(_recordSize*nfi) ;
     QProcess p;
     p.execute(program,arguments);
-
-  return(true);
+    return(true);
 }
-// µµµµµ fin
+
+void DetecLaunch::showInfo(QString s,bool showTime,bool e,bool l)
+{
+    QString s2 = "";
+    if(showTime) s2 = QString("  -   ")+QDateTime::currentDateTime().toString("hh:mm:ss:zzz");
+    if(l) LogStream << s << s2 << endl;
+    if(e) cout << s.toStdString() << s2.toStdString() << endl;
+}
+
+void DetecLaunch::detecInfoTreat(QString wavFile,int resu)
+{
+    //LogStream << "detecInfoTreat " << endl;
+    if(resu)_nbTreatedFiles++; else _nbErrorFiles++;
+    QString sresu;
+    if(resu==1) sresu = "ok"; else sresu = "error";
+    showInfo(QString("Treatment of ")+wavFile+" : "+sresu,true);
+}
+
+void DetecLaunch::showHelp()
+{
+    QString helpInfo = "\n-t [n] allows to execute n parallel threads (1 by default)\n";
+    helpInfo += "-x [n] is the time expansion factor,\n   either 10 (default) for 10-times expanded .wav files\n   or 1 for direct recordings\n";
+    helpInfo += "-v [n] sets the list of features to be extracted on each detected sound event\n   (2 by default)\n";
+    helpInfo += "_f [n] sets the frequency bands to be used;\n   n = 2 allows to treat low frequencies (0.8 to 25 kHz)\n   whereas n=1 (default) treats high frequencies (8 to 250 kHz)\n";
+    helpInfo += "-c gives compressed version of .ta output files\n";
+    helpInfo += "\?nAfter optional settings, must be mentioned :\n   - either a directory path containing .wav files \n   - or a list of .wav files, to be processed.\n   Relative or absolute paths can be used.";
+    showInfo(helpInfo,false,true,false);
+    _helpShown = true;
+}
+

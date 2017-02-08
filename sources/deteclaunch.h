@@ -12,13 +12,11 @@
 #define PARAMCOMPRESS 2
 #define PARAMHELP 3
 #define PARAMNTHREADS 4
-#define PARAMNPROCESS 5
-#define PARAMNCALLED 6
-#define PARAMNVERSION 7
-#define PARAMRECORD 8
-#define PARAMWAVSTOCK 9
-#define PARAMAUDIO 10
-#define PARAMFREQ 11
+#define PARAMNVERSION 5
+#define PARAMRECORD 6
+#define PARAMWAVSTOCK 7
+#define PARAMAUDIO 8
+#define PARAMFREQ 9
 #include <QDir>
 #include <QFile>
 #include <QObject>
@@ -28,6 +26,7 @@
 #include <QTextStream>
 #include "fftw3.h"
 
+// Deteclaunch : main class of tadaridaD (non graphic class)
 class DetecLaunch : public QObject
 {
 Q_OBJECT
@@ -43,35 +42,35 @@ public:
     QTextStream                  LogStream;
 
 private slots:
-    void                                 processError(QProcess::ProcessError);
-    void                                 processFinished(int,QProcess::ExitStatus);
-    void                                 processStarted();
+    void                                 detecInfoTreat(QString,int);
 
 private :
     bool                                  createTxtFile(QString);
     bool                                  lanceSox(int,int,int);
+    void                                 showHelp();
+    void                                 showInfo(QString s,bool b=false,bool e=true,bool l=true);
 
     QString                           _audioName;
+    bool                                 _helpShown;
     bool                                  _launchRecord;
     QFile                               _logFile;
     int                                    _modeFreq;
     int                                     _modeDirFile;
     bool                                 _mustCompress;
     int                                     _nbPec;
-    int                                    _nbProcess;
+    int                                    _nbTreatedFiles;
+    int                                    _nbErrorFiles;
     int                                    _nbThreads;
-    int                                    _nCalled;
     int                                    _nFilesPerTreatment;
     int                                    _nRecords;
     int                                    _nSeries;
     int                                     _nwf;
-    int                                     _nwfp;
     int                                    _paramVersion;
     int                                    _recordSize;
     int                                    _timeExpansion;
     QDir                                _wavTrav;
     QStringList                     _wavFileList;
-    QStringList                     _wavFileListProcess;
+    QStringList                     _wavFileListGen;
     QString                           _wavPath;
     QStringList                     _wavRepList;
     bool                                _wavStock;

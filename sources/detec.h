@@ -35,7 +35,7 @@ class Detec : public QThread
 {
     Q_OBJECT
 public:
-    Detec(DetecLaunch *pdl,QString,int,QString,int,QString,QStringList,QStringList,int,bool,int,bool,bool,bool,int);
+    explicit Detec(DetecLaunch *,int,QString,int,QString,QStringList,QStringList,int,bool,int,bool,bool,bool,int);
     Detec(int);
     ~Detec();
     void                                  run();
@@ -54,8 +54,11 @@ public:
     bool                                  IDebug;
     int                                      IThread;
 
+signals:
+    void                                  info1(QString,int);
+
 private:
-    bool                                  createTxtFile(QString);
+    bool                                  createTxtDir(QString);
     void                                  endDetec();
     bool                                  initializeDetec();
     void                                  treatOneFile(QString,QString);
@@ -80,7 +83,6 @@ private:
     int                                     _numThread;
     int                                     _nProcess;
     int                                     _paramVersion;
-    QString                            _processSuffixe;
     QString                            _threadSuffixe;
     QString                            _resultSuffix;
     int                                     _stopThreshold;

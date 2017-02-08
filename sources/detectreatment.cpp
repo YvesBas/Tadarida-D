@@ -2,7 +2,7 @@
 #include "detec.h"
 class Detec;
 
-
+// ParamToSave: the settings of ".ta" files are described by objects of this class
 ParamToSave::ParamToSave(int arrayNumber,int paramaterNumber,QString columnTitle)
 {
     ArrayNumber=arrayNumber;
@@ -38,16 +38,21 @@ ParamToSave::~ParamToSave()
 {
 }
 
+// each thread of detec class creates an object of DetecTreatment class
+// which supports the processing of sound files
 DetecTreatment::DetecTreatment(Detec *pDet)
 {
     _detec = pDet;
     _detec->LogStream << "detec->IThread=" << _detec->IThread << endl;
+    // global variables allowing the computefft method to be thread safe
     _complexInput = _detec->PMainWindow->ComplexInput[_detec->IThread];
     _fftRes = _detec->PMainWindow->FftRes[_detec->IThread];
     _resultSuffix = QString("ta");
     if(LINWIN==1) _resultCompressedSuffix = QString("tac");
     else _resultCompressedSuffix = QString("ta.gz");
+    // version of the list of settings of sound events in the ".ta" files
     _paramVersion = 1;
+    // initializes the definitions of settings
     initVectorParams();
 }
 
@@ -63,6 +68,7 @@ DetecTreatment::~DetecTreatment()
 
 void DetecTreatment::InitializeDetecTreatment()
 {
+    // this method creates the variables and arrays used by treatments of sound files
     if(_detec->IDebug) _detec->LogStream << "i1" << endl;
     _data				= ( float* ) fftwf_malloc( sizeof( float ) * FFT_HEIGHT_MAX );
     if(_detec->IDebug) aff("_data",(qint64)_data,FFT_HEIGHT_MAX*sizeof(float));
@@ -176,6 +182,7 @@ void DetecTreatment::InitializeDetecTreatment()
 void DetecTreatment::SetDirParameters(QString wavPath,QString txtPath,bool imageData,
                                                                        QString imagePath,QString datPath)
 {
+    // this method affects the paths of the directories of input and output files
     _wavPath = wavPath;
     _txtPath = txtPath;
     _imageData = imageData;
@@ -183,6 +190,7 @@ void DetecTreatment::SetDirParameters(QString wavPath,QString txtPath,bool image
     _datPath = datPath;
 }
 
+// assignment of settings for processing files
 void DetecTreatment::SetGlobalParameters(int modeFreq,int timeExpansionLeft,int timeExpansionRight,int detectionThreshold,int stopThreshold,
                                  int freqMin,int nbo,bool useValflag,
                                 int jumpThreshold,int widthBigControl,int widthLittleControl,
@@ -213,6 +221,10 @@ void DetecTreatment::SetGlobalParameters(int modeFreq,int timeExpansionLeft,int 
     _desactiveCorrectNoise = desactiveCorrectNoise;
 }
 
+// this method defines the settings which will be computed by the method detectsparameter2
+// they are recorded in a vector of objects of the class: ParamToSave
+// according to the values of parameters needVer and limVer, the settings will be recorded
+// in the ".ta" file
 void DetecTreatment::initVectorParams()
 {
 
@@ -248,7 +260,6 @@ void DetecTreatment::initVectorParams()
     VectPar.push_back(ParamToSave(CO2,Dur,"CO2_Dur",0,1));
     VectPar.push_back(ParamToSave(CM,Fmax,"CM_Fmax",0,1));
     VectPar.push_back(ParamToSave(CS,Fmax,"CS_Fmax",0,1));
-    //_vectPar.push_back(ParamToSave(CN,Fmax,"CN_Fmax"));
     VectPar.push_back(ParamToSave(CM,Fmin,"CM_Fmin",0,1));
     VectPar.push_back(ParamToSave(CN,Fmin,"CN_Fmin",0,1));
     VectPar.push_back(ParamToSave(CM,BW,"CM_BW",0,1));
@@ -256,19 +267,16 @@ void DetecTreatment::initVectorParams()
     VectPar.push_back(ParamToSave(CN,BW,"CN_BW",0,1));
     VectPar.push_back(ParamToSave(CO2,FPk,"CO2_FPk",0,1));
     VectPar.push_back(ParamToSave(CO2,FPkD,"CO2_FPkD"));
-    //_vectPar.push_back(ParamToSave(CM,TPk,"CM_Ldom"));
     VectPar.push_back(ParamToSave(CO2,TPk,"CO2_TPk"));
     for(int i=CM;i<=CO2;i++) VectPar.push_back(ParamToSave(i,Slope,prefix[i]+"Slope"));
     for(int i=CO;i<=CO2;i++)
         if(i==CO) VectPar.push_back(ParamToSave(i,ISlope,prefix[i]+"ISlope",1,1));
        else VectPar.push_back(ParamToSave(i,ISlope,prefix[i]+"ISlope",1));
-
     for(int i=CM;i<=CO2;i++) VectPar.push_back(ParamToSave(i,HCF,prefix[i]+"HCF",0,1));
     for(int i=CM;i<=CO2;i++) VectPar.push_back(ParamToSave(i,THCF,prefix[i]+"THCF"));
     for(int i=CM;i<=CO2;i++)
         if(i>=CO) VectPar.push_back(ParamToSave(i,FIF,prefix[i]+"FIF",0,1));
         else VectPar.push_back(ParamToSave(i,FIF,prefix[i]+"FIF"));
-
     for(int i=CM;i<=CO2;i++) VectPar.push_back(ParamToSave(i,LCF,prefix[i]+"LCF",0,1));
     for(int i=CM;i<=CO2;i++) VectPar.push_back(ParamToSave(i,UpSl,prefix[i]+"UpSl"));
     for(int i=CM;i<=CO2;i++) VectPar.push_back(ParamToSave(i,LoSl,prefix[i]+"LoSl"));
@@ -276,11 +284,9 @@ void DetecTreatment::initVectorParams()
     VectPar.push_back(ParamToSave(CM,EnF,"CM_EnF",0,1));
     for(int i=CM;i<=CO2;i++) VectPar.push_back(ParamToSave(i,StSl,prefix[i]+"StSl"));
     for(int i=CM;i<=CO2;i++) VectPar.push_back(ParamToSave(i,EnSl,prefix[i]+"EnSl"));
-
     for(int i=CM;i<=CO2;i++)
         if(i==CM || i==CO2) VectPar.push_back(ParamToSave(i,FISl,prefix[i]+"FPSl",0,1));
         else VectPar.push_back(ParamToSave(i,FISl,prefix[i]+"FPSl"));
-
     VectPar.push_back(ParamToSave(CM,FISl,"CM_FISl"));
     VectPar.push_back(ParamToSave(CO2,FISl,"CO2_FISl"));
     for(int i=CM;i<=CN;i++) VectPar.push_back(ParamToSave(i,CeF,prefix[i]+"CeF",0,1));
@@ -288,12 +294,10 @@ void DetecTreatment::initVectorParams()
     VectPar.push_back(ParamToSave(CM,B5dBAF,"CM_5dBAF",0,1));
     VectPar.push_back(ParamToSave(CM,B5dBBW,"CM_5dBBW"));
     VectPar.push_back(ParamToSave(CM,B5dBDur,"CM_5dBDur"));
-
     VectPar.push_back(ParamToSave(CO2,B5dBBF,"CO2_5dBBF",0,1));
     VectPar.push_back(ParamToSave(CO2,B5dBAF,"CO2_5dBAF",0,1));
     VectPar.push_back(ParamToSave(CO2,B5dBBW,"CO2_5dBBW"));
     VectPar.push_back(ParamToSave(CO2,B5dBDur,"CO2_5dBDur"));
-
     VectPar.push_back(ParamToSave(SH,Hup_RFMP,"Hup_RFMP"));
     VectPar.push_back(ParamToSave(SH,Hup_PosMP,"Hup_PosMP",0,1));
     VectPar.push_back(ParamToSave(SH,Hup_PosSt,"Hup_PosSt",0,1));
@@ -306,7 +310,6 @@ void DetecTreatment::initVectorParams()
     VectPar.push_back(ParamToSave(SH,Hlo_PosEn,"Hlo_PosEn"));
     VectPar.push_back(ParamToSave(SH,Hlo_AmpDif,"Hlo_AmpDif"));
     VectPar.push_back(ParamToSave(SH,Hlo_RSlope,"Hlo_RSlope",0,1));
-
     VectPar.push_back(ParamToSave(SH,Ramp_2_1,"Ramp_2_1"));
     VectPar.push_back(ParamToSave(SH,Ramp_3_1,"Ramp_3_1"));
     VectPar.push_back(ParamToSave(SH,Ramp_3_2,"Ramp_3_2"));
@@ -319,12 +322,10 @@ void DetecTreatment::initVectorParams()
     VectPar.push_back(ParamToSave(SH,RAN_1_2,"RAN_1_2"));
     VectPar.push_back(ParamToSave(SH,RAN_4_3,"RAN_4_3"));
     VectPar.push_back(ParamToSave(SH,RAN_2_3,"RAN_2_3"));
-
     VectPar.push_back(ParamToSave(SH,HetX,"HetX"));
     VectPar.push_back(ParamToSave(SH,HetY,"HetY",0,1));
     VectPar.push_back(ParamToSave(SH,Dbl8,"Dbl8"));
     VectPar.push_back(ParamToSave(SH,Stab,"Stab"));
-
     VectPar.push_back(ParamToSave(SH,HeiET,"HeiET"));
     VectPar.push_back(ParamToSave(SH,HeiEM,"HeiEM"));
     VectPar.push_back(ParamToSave(SH,HeiRT,"HeiRT"));
@@ -357,7 +358,6 @@ void DetecTreatment::initVectorParams()
     VectPar.push_back(ParamToSave(SH,HetCMfP,"HetCMfP"));
     VectPar.push_back(ParamToSave(SH,HetCTnP,"HetCTnP",0,1));
     VectPar.push_back(ParamToSave(SH,HetCTfP,"HetCTfP"));
-
     VectPar.push_back(ParamToSave(SH,HetPicsMAD,"HetPicsMAD",0,1));
     VectPar.push_back(ParamToSave(SH,HetPicsMALD,"HetPicsMALD"));
     VectPar.push_back(ParamToSave(SH,HetPicsMABD,"HetPicsMABD"));
@@ -379,7 +379,6 @@ void DetecTreatment::initVectorParams()
     VectPar.push_back(ParamToSave(SH,VLDPPicsT,"VLDPPicsT"));
     VectPar.push_back(ParamToSave(SH,VBDPPicsT,"VBDPPicsT"));
     {
-        // bloc des nouveaux paramï¿½tres
         for(int i=CM;i<=CO2;i++)
         {
             VectPar.push_back(ParamToSave(i,SDC,prefix[i]+"SDC",1,1));
@@ -389,78 +388,54 @@ void DetecTreatment::initVectorParams()
         VectPar.push_back(ParamToSave(CS,SDCRY,"CS_SDCRY",1,1));
         VectPar.push_back(ParamToSave(CM,SDCRXY,"CM_SDCRXY",1));
         VectPar.push_back(ParamToSave(CS,SDCRXY,"CS_SDCRXY",1));
-        //
-
         for(int i=CM;i<=CS;i++)
         {
             if(i==CS) VectPar.push_back(ParamToSave(i,SDCL,prefix[i]+"SDCL",1,1));
             else VectPar.push_back(ParamToSave(i,SDCL,prefix[i]+"SDCL",1));
             VectPar.push_back(ParamToSave(i,SDCLR,prefix[i]+"SDCLR",1,1));
             VectPar.push_back(ParamToSave(i,SDCLRY,prefix[i]+"SDCLRY",1,1));
-
             VectPar.push_back(ParamToSave(i,SDCLRXY,prefix[i]+"SDCLRXY",1,1));
-
             VectPar.push_back(ParamToSave(i,SDCLRXY2,prefix[i]+"SDCLRXY2",1,1));
-            //
             VectPar.push_back(ParamToSave(i,SDCLOP,prefix[i]+"SDCLOP",1));
             VectPar.push_back(ParamToSave(i,SDCLROP,prefix[i]+"SDCLROP",1));
-
             if(i==CM) VectPar.push_back(ParamToSave(i,SDCLRYOP,prefix[i]+"SDCLRYOP",1,1));
             else VectPar.push_back(ParamToSave(i,SDCLRYOP,prefix[i]+"SDCLRYOP",1));
-
             VectPar.push_back(ParamToSave(i,SDCLRXYOP,prefix[i]+"SDCLRXYOP",1,1));
-            //
             if(i==CM) VectPar.push_back(ParamToSave(i,SDCLWB,prefix[i]+"SDCLWB",1,1));
             else VectPar.push_back(ParamToSave(i,SDCLWB,prefix[i]+"SDCLWB",1));
-
             if(i==CS) VectPar.push_back(ParamToSave(i,SDCLRWB,prefix[i]+"SDCLRWB",1,1));
             else VectPar.push_back(ParamToSave(i,SDCLRWB,prefix[i]+"SDCLRWB",1));
-
             VectPar.push_back(ParamToSave(i,SDCLRYWB,prefix[i]+"SDCLRYWB",1,1));
-
             VectPar.push_back(ParamToSave(i,SDCLRXYWB,prefix[i]+"SDCLRXYWB",1,1));
-            //
             VectPar.push_back(ParamToSave(i,SDCLOPWB,prefix[i]+"SDCLOPWB",1,1));
-
             VectPar.push_back(ParamToSave(i,SDCLROPWB,prefix[i]+"SDCLROPWB",1,1));
-
             VectPar.push_back(ParamToSave(i,SDCLRYOPWB,prefix[i]+"SDCLRYOPWB",1,1));
-
             if(i==CS) VectPar.push_back(ParamToSave(i,SDCLRXYOPWB,prefix[i]+"SDCLRXYOPWB",1,1));
             else VectPar.push_back(ParamToSave(i,SDCLRXYOPWB,prefix[i]+"SDCLRXYOPWB",1));
-            //
             VectPar.push_back(ParamToSave(i,SDCL_DNP,prefix[i]+"SDCL_DNP",1,1));
-
             VectPar.push_back(ParamToSave(i,SDCLR_DNP,prefix[i]+"SDCLR_DNP",1));
-
             if(i==CM) VectPar.push_back(ParamToSave(i,SDCLRY_DNP,prefix[i]+"SDCLRY_DNP",1,1));
             else VectPar.push_back(ParamToSave(i,SDCLRY_DNP,prefix[i]+"SDCLRY_DNP",1));
-
             VectPar.push_back(ParamToSave(i,SDCLRXY_DNP,prefix[i]+"SDCLRXY_DNP",1,1));
-
             VectPar.push_back(ParamToSave(i,SDCLRXY2_DNP,prefix[i]+"SDCLRXY2_DNP",1,1));
         }
         VectPar.push_back(ParamToSave(CM,ELBPOS,"CM_ELBPOS",1));
         VectPar.push_back(ParamToSave(CS,ELBPOS,"CS_ELBPOS",1));
         VectPar.push_back(ParamToSave(CM,ELBSB,"CM_ELBSB",1));
         VectPar.push_back(ParamToSave(CS,ELBSB,"CS_ELBSB",1));
-        //
         VectPar.push_back(ParamToSave(CM,ELB2POS,"CM_ELB2POS",1));
         VectPar.push_back(ParamToSave(CS,ELB2POS,"CS_ELB2POS",1));
         VectPar.push_back(ParamToSave(CM,ELB2SB,"CM_ELB2SB",1));
         VectPar.push_back(ParamToSave(CS,ELB2SB,"CS_ELB2SB",1));
-        //
         VectPar.push_back(ParamToSave(CM,RAF,"CM_RAF",1,1));
         VectPar.push_back(ParamToSave(CM,RAE,"CM_RAE",1,1));
         VectPar.push_back(ParamToSave(CM,RAFE,"CM_RAFE",1));
         VectPar.push_back(ParamToSave(CM,RAFP,"CM_RAFP",1,1));
         VectPar.push_back(ParamToSave(CM,RAFP2,"CM_RAFP2",1,1));
         VectPar.push_back(ParamToSave(CM,RAFP3,"CM_RAFP3",1));
-        //
         VectPar.push_back(ParamToSave(CM,SBMP,"CM_SBMP",1));
         VectPar.push_back(ParamToSave(CM,SAMP,"CM_SAMP",1));
         VectPar.push_back(ParamToSave(CM,SBAR,"CM_SBAR",1));
-        //
         VectPar.push_back(ParamToSave(CM,RAHP2,"RAHP2",1,1));
         VectPar.push_back(ParamToSave(CM,RAHP4,"RAHP4",1,1));
         VectPar.push_back(ParamToSave(CM,RAHP8,"RAHP8",1,1));
@@ -469,18 +444,16 @@ void DetecTreatment::initVectorParams()
         VectPar.push_back(ParamToSave(CM,RAHE4,"RAHE4",1));
         VectPar.push_back(ParamToSave(CM,RAHE8,"RAHE8",1,1));
         VectPar.push_back(ParamToSave(CM,RAHE16,"RAHE16",1,1));
-    } // fin bloc des nouveaux paramï¿½tres
+    } 
 }
 
+// this method deletes dynamically created objects and frees memory allocated
+// in the method:InitializeDetecTreatment()
 void DetecTreatment::EndDetecTreatment()
 {
     if(_detec->IDebug) _detec->LogStream << "e1" << endl;
     if(_detec->IDebug) aff("_data",(qint64)_data,0);
     fftwf_free(_data);
-    // if(_detec->IDebug) aff("_fftRes",(qint64)_fftRes,0);
-    // fftwf_free(_fftRes);
-    // if(_detec->IDebug) aff("_complexInput",(qint64)_complexInput,0);
-    // fftwf_free(_complexInput);
     if(_detec->IDebug) aff("_coeff",(qint64)_coeff,0);
     delete _coeff;
     if(_detec->IDebug) aff("_charSonogramArray",(qint64)_charSonogramArray,0);
@@ -569,7 +542,14 @@ void DetecTreatment::EndDetecTreatment()
     if(_detec->IDebug) _detec->LogStream << "e9" << endl;
 }
 
-
+// CallTreatmentsForOneFile: a very important method which is called by the object
+// of detec class to treat one file
+// this method calls the main methods of treatment for each file
+//     openWavFile
+//     correctNoise
+//     shapesDetects
+//     detectsParameter2
+//     saveParameters
 bool DetecTreatment::CallTreatmentsForOneFile(QString& wavFile,QString &pathFile)
 {
     _detec->LogStream << "c:" << endl;
@@ -582,27 +562,21 @@ bool DetecTreatment::CallTreatmentsForOneFile(QString& wavFile,QString &pathFile
     {
         if(computeFFT(pathFile))
         {
-
             d[0]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            //_detec->_logText <<   "A.cFFT:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             _detec->LogStream <<   "cF"<< endl;
             correctNoise();
             d[1]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            //_detec->_logText <<   "A.cN:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             _detec->LogStream <<   "cN"<< endl;
             shapesDetects();
             d[2]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            //_detec->_logText <<   "A.sD: "<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             _detec->LogStream <<   "sD: " << endl;
             _callsNumber = (int)CallsArray.size();
             detectsParameter2();
             d[3]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            //_detec->_logText <<   "A.dP:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             _detec->LogStream <<   "dP" << endl;
             saveParameters(wavFile);
             if(_detec->MustCompress) saveCompressedParameters(wavFile);
             d[4]=(int)(QDateTime::currentDateTime().toMSecsSinceEpoch()-d0);
-            //_detec->_logText <<   "A.sP:"<< QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
             _detec->LogStream <<   "sP" << endl;
             if(_detec->TimeFileOpen)
             {
@@ -610,9 +584,6 @@ bool DetecTreatment::CallTreatmentsForOneFile(QString& wavFile,QString &pathFile
                 for(int j=1;j<=4;j++) _detec->TimeStream  << d[j] - d[j-1] << '\t';
                 _detec->TimeStream  << d[4] << endl;
             }
-
-
-			
         }
         else
         {
@@ -626,6 +597,7 @@ bool DetecTreatment::CallTreatmentsForOneFile(QString& wavFile,QString &pathFile
     return(true);
 }
 
+// this method cleans variables which must be cleaned for each treatment of a file
 void DetecTreatment::clearVars()
 {
     CallsArray.clear();
@@ -642,6 +614,7 @@ void DetecTreatment::clearVars()
     }
 }
 
+// debug informations recorded in debug mode
 void DetecTreatment::aff(QString name,qint64 address,int size)
 {
     _detec->LogStream << "P:"<< name << " : " << address ;
@@ -649,6 +622,10 @@ void DetecTreatment::aff(QString name,qint64 address,int size)
     else _detec->LogStream << " s=" << size << endl;
 }
 
+// this method determines if a .wav file corresponds
+// to a left / mono or right channel of a recorder
+// from conventions on the file name in the vigiechiro protocol
+// to be modified for other uses
 bool DetecTreatment::determineLeftOrRight(QString& wavFile)
 {
     int ct = wavFile.count("_");
@@ -666,6 +643,8 @@ bool DetecTreatment::determineLeftOrRight(QString& wavFile)
     return(true);
 }
 
+// this method uses the sndfile library to verify the validity of the .wav file
+// very important variables for the treatment are computed : _fftHeight and _iH
 bool DetecTreatment::openWavFile(QString& pathFile)
 {
 
@@ -678,7 +657,6 @@ bool DetecTreatment::openWavFile(QString& pathFile)
     if (_soundFileInfo.channels > 1)
     {
         sf_close (_soundFile);
-        //fr if(_detec->_errorFileOpen) _detec->_errorStream << pathFile << ": " << "multi-channel non traite" << endl;
         if(_detec->ErrorFileOpen) _detec->ErrorStream << pathFile << ": " << "multi-channel is not managed" << endl;
         NError=MCNT;
         return  false;
@@ -713,14 +691,12 @@ bool DetecTreatment::openWavFile(QString& pathFile)
     if(TimeExpansion<=0)
     {
         sf_close (_soundFile);
-        //fr if(_detec->_errorFileOpen) _detec->_errorStream << _wavFile << ": facteur temporel non défini pour ce fichier" << endl;
         if(_detec->ErrorFileOpen) _detec->ErrorStream << _wavFile << ": undefined time factor" << endl;
         _detec->LogStream << _wavFile << ": ft ndef" << endl;
 
         NError=TNT;
         return(false);
     }
-    // edit yves
     _detec->LogStream << "sfte=" << _soundFileInfo.samplerate*TimeExpansion << endl;
     if(_modeFreq==2)
     {
@@ -768,6 +744,9 @@ bool DetecTreatment::openWavFile(QString& pathFile)
     return true;
 }
 
+// the computeFFT method uses fftw3 library (Fast Fourier transforms algorithms)
+// at the end of this treatment, the array: SonogramArray contains a matrix: frequency/time/energy
+// used for the detection of soundevents and the calculation of their parameters
 bool DetecTreatment::computeFFT(QString &wavFile)
 {
     int iCount;
@@ -794,20 +773,6 @@ bool DetecTreatment::computeFFT(QString &wavFile)
         NError=DTG;
         return  false;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     sf_seek(_soundFile, 0, SEEK_END);
     _pPlan = &(_detec->PMainWindow->Plan[_detec->IThread][_iH]);
     float fact1=2.0f*PI;
@@ -866,7 +831,8 @@ bool DetecTreatment::computeFFT(QString &wavFile)
     return true;
 }
 
-
+// this method contains algorithms to eliminate background noise
+// to improve the detection of cries...
 void DetecTreatment::correctNoise()
 {
     _minY=(int)(((float)_freqMin)/((float)KhzPerY));
@@ -882,8 +848,6 @@ void DetecTreatment::correctNoise()
         _detec->LogStream << "_freqMin = " << _freqMin << endl;
         _detec->LogStream << "FREQ_MAX = " << FREQ_MAX << endl;
 	}
-    // -------------------------------------------------------------------------------------
-    // desactivation correctNoise
     if(_desactiveCorrectNoise)
     {
         qint16 *fc;
@@ -895,11 +859,10 @@ void DetecTreatment::correctNoise()
         }
         return;
     }
-    // -------------------------------------------------------------------------------------
     int son_min = EMIN,son_max = EMIN+199;
     int minEmc = qMax((int)(20.0f/KhzPerY),_minY);
     int maxEmc = qMin((int)(80.0f/KhzPerY),_maxY);
-    // 1) neutralizes silent columns
+    // neutralizes silent columns
     for (int x = 0 ; x < SonogramWidth ; x++) EnergyColumAverage[x] = 0.0f;
     //for(int y = _minY; y < _maxY ; y++)
     int decalThreshold = 0;
@@ -970,7 +933,6 @@ void DetecTreatment::correctNoise()
                     patience = 0;
                     if(valFlag==false)
                     {
-                        //fr _detec->_logText << "saut montant en (ms)" << x * _msPerX << " (x=" << x << ")"
                         if(_detec->IDebug) _detec->LogStream << "jumping up (ms)" << x * MsPerX << " (x=" << x << ")"
                                          << "  before : " << averageLittleBefore << ", " << averageBigBefore
                                          << "  after : " << averageLittleNext << ", " << averageBigNext
@@ -1051,7 +1013,6 @@ void DetecTreatment::correctNoise()
         WithSilence = true;
         if(nff*2 >SonogramWidth)
         {
-            // calcul des variables
             for(int jpha=0;jpha<2;jpha++)
             {
                 int totTrue = 0;
@@ -1105,8 +1066,6 @@ void DetecTreatment::correctNoise()
         _detec->LogStream << "nff = " << nff << " sur " << SonogramWidth << endl;
     }
 
-    // -----------------------------------------------------------------------------------
-    // 2)
     int tval[200];
     qint16 *fc;
     int largeurRectifiee;
@@ -1143,6 +1102,11 @@ void DetecTreatment::correctNoise()
     }
 }
 
+// this method determines sound events
+// its algorithm detects points of the time/frequency matrix
+// whose energy is greater than a threshold (_detectionThreshold)
+// and associates all the adjoining points whose energy is greater than a second
+// threshold (_stopThreshold)
 void DetecTreatment::shapesDetects()
 {
     for(int j=0;j<MAXHEIGHT;j++) memset(PointFlagsArray[j],0,LD8);
@@ -1240,7 +1204,6 @@ void DetecTreatment::shapesDetects()
                             break;
                         }
                     }
-
                     float freqpm=((float)_vectorCallPoints.at(_callEnergyMaxIndex).y())*KhzPerY;
 
                     if(freqpm>_freqCallMin && (_xMax-_xMin+1)<MAXLARCRI
@@ -1276,6 +1239,9 @@ void DetecTreatment::shapesDetects()
     sortWaves();
 }
 
+// this method sorts the sound events according to their start time
+// it is necessary for some settings computing depending on those of other
+// preceding or following sound events
 void DetecTreatment::sortWaves()
 {
     bool ontrie = true;
@@ -1311,6 +1277,8 @@ void DetecTreatment::sortWaves()
     }
 }
 
+// this very long method computes all the settings to be recorded in the ".ta" file
+// read the description of settings in tadarida manual
 void DetecTreatment::detectsParameter2()
 {
     float *oParam;
@@ -1603,7 +1571,6 @@ void DetecTreatment::detectsParameter2()
         int tempsOuest[2];
         tempsOuest[0] = qMax(_xMinPerY[0],_xMinPerY[ymax-ymin])-xmin+1;
         oParamCrete[3][Dur] = (float)tempsOuest[0]*(float)MsPerX;
-
         tempsOuest[1] = qMax(_xSecondWestRidgePerY[0],_xSecondWestRidgePerY[ymax-ymin])-xmin+1;
         oParamCrete[4][Dur] = (float)tempsOuest[1]*(float)MsPerX;
         int fmin=_yEmaxPerX[icri][0],fmax=fmin;
@@ -1618,7 +1585,7 @@ void DetecTreatment::detectsParameter2()
         oParamCrete[0][Fmax]=(float)fmax*(float)KhzPerY;
         oParamCrete[0][Fmin]=(float)fmin*(float)KhzPerY;
         oParamCrete[0][BW]=oParamCrete[0][Fmax]-oParamCrete[0][Fmin];
-        quint16 *pc; // pointeur sur la crete
+        quint16 *pc; 
         int alasuite,meilleuresuite,meilleur;
         float meilleurepente;
         int xmcmax[NCRETES],ymcmax[NCRETES];
@@ -1685,7 +1652,7 @@ void DetecTreatment::detectsParameter2()
             }
             if(np>0) ampmoy[ih]=amp[ih]/((float)np*100.0f);
             if(nn>0) ranmoy[ih]=ran[ih]/((float)nn*100.0f);
-        } // next ih
+        } 
         if(ampmoy[0]>0.0f)
         {
             oParam[Ramp_2_1] = ampmoy[1]/ampmoy[0];
@@ -1704,7 +1671,6 @@ void DetecTreatment::detectsParameter2()
             oParam[Ramp_4_3] = 0.0f;
             oParam[Ramp_2_3] = 0.0f;
         }
-        //
         if(ranmoy[1]>0) oParam[RAN_2_1] =  ampmoy[1]/ranmoy[1];
         else oParam[RAN_2_1] =  0.0f;
         if(ranmoy[2]>0) oParam[RAN_3_1] =  ampmoy[2]/ranmoy[2];
@@ -1748,9 +1714,7 @@ void DetecTreatment::detectsParameter2()
                     if(e2>0.0f && x>0 && x<SonogramWidth-1)
                     {
                         ntr++;
-                        //ï¿½ e1=_sonogramArray[y][x-1];
                         e1 = (float)SonogramArray[y][x-1]/100.0f;
-                        //ï¿½ e3=_sonogramArray[y][x+1];
                         e3 = (float)SonogramArray[y][x+1]/100.0f;
                         if((e2>e1 && e2>e3) || (e2<e1 && e2<e3)) nen++;
                     }
@@ -1927,7 +1891,6 @@ void DetecTreatment::detectsParameter2()
         oParam[HetCMfP] = (float)nbpics[0]/((xmax-xmin+1)*MsPerX);
         oParam[HetCTnP] = nbpics[1];
         oParam[HetCTfP] = (float)nbpics[1]/((xmax-xmin+1)*MsPerX);
-        // -----------------------------------------------------------------------------------
         float interc[MAXLARCRI/2];
         float variationPicsInter[MAXLARCRI/2];
         for(int mt=0;mt<2;mt++)
@@ -2046,7 +2009,7 @@ void DetecTreatment::detectsParameter2()
                 n8++;
             }
         }
-        oParam[Dbl8] = eMoy - (e8/((float)n8*100.0f));
+        if(n8>0) oParam[Dbl8] = eMoy - (e8/((float)n8*100.0f));
         oParam[Stab] = 0.0f;
         float dif,p;
         float ponderTot = 0.0f;
@@ -2990,7 +2953,7 @@ void DetecTreatment::detectsParameter2()
             if(jcrete<3) intervTemps = xmax-xmin+1;
             else intervTemps = tempsOuest[jcrete-3];
             oParamCrete[jcrete][TPk] = (float)(xmcmax[jcrete]-xmin+0.5f)/(float)intervTemps;
-        } // end of loop "jcrete"
+        } // end of crests loop 
         oParamCrete[0][StF] = (float)_yEmaxPerX[icri][0]*KhzPerY;
         oParamCrete[0][EnF] = (float)_yEmaxPerX[icri][xmax-xmin]*KhzPerY;
         if(_imageData)
@@ -3160,7 +3123,6 @@ void DetecTreatment::detectsParameter2()
                 famp1+=_tabX[icri][i-xmin1];
                 famp2+=_tabX[nhinf][i-xmin2];
             }
-            // if(famp1>0.0f) _paramsArray[icri][SH][Hlo_AmpDif] = famp2/famp1;
             _paramsArray[icri][SH][Hlo_AmpDif] = (famp2-famp1)*KhzPerY;
             int nouveauxdeb=xdeb;
             int nouveauxfin=xfin;
@@ -3269,7 +3231,6 @@ void DetecTreatment::detectsParameter2()
             if(medianLittleDistance>0.0f) _paramsArray[icri][SH][RInt1] = medianBigDistance / medianLittleDistance;
             else _paramsArray[icri][SH][RInt1] = 9999;
             //
-            // 5) Variations des intervalles
             float medianDistanceVariation = 0;
             // a) ï¿½cart mï¿½dian
             for(int j=0;j<nbi;j++) variation[j] = qAbs(interv[j]-medianDistance);
@@ -3339,6 +3300,7 @@ void DetecTreatment::detectsParameter2()
     }
 }
 
+// methods used to sort arrays of numbers for computing of settings
 void DetecTreatment::sortFloatArray(float *pf,int nbf)
 {
     float conserv;
@@ -3413,6 +3375,7 @@ void DetecTreatment::sortIntArrays(int *pf,int nbf,int *pf2)
     }
 }
 
+// this method saves the computed settings in the ".ta" file
 void DetecTreatment::saveParameters(const QString& wavFile)
 {
     QString txtFilePath = _txtPath+"/"+wavFile.left(wavFile.length()-3)+ _resultSuffix;
@@ -3433,8 +3396,6 @@ void DetecTreatment::saveParameters(const QString& wavFile)
         if(VectPar[j].FromVersion<=_paramVersion && (VectPar[j].ToVersion< 0 || VectPar[j].ToVersion>=_paramVersion))  
 		fileStream << '\t' << VectPar[j].ColumnTitle;
     fileStream << endl;
-    //float **parArray;
-    //float u_f;
     float dur = (float)SonogramWidth*MsPerX/1000;
     float sr = (float)_soundFileInfo.samplerate*TimeExpansion;
     for(int i=0;i<_callsNumber;i++)
@@ -3452,6 +3413,7 @@ void DetecTreatment::saveParameters(const QString& wavFile)
     txtFile.close();
 }
 
+// this method compresses the ".ta" file
 void DetecTreatment::saveCompressedParameters(const QString& wavFile)
 {
     QString txtFilePath = _txtPath+"/"+wavFile.left(wavFile.length()-3)+ _resultSuffix;

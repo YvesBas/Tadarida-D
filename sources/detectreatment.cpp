@@ -69,19 +69,12 @@ DetecTreatment::~DetecTreatment()
 void DetecTreatment::InitializeDetecTreatment()
 {
     // this method creates the variables and arrays used by treatments of sound files
-    if(_detec->IDebug) _detec->LogStream << "i1" << endl;
     _data				= ( float* ) fftwf_malloc( sizeof( float ) * FFT_HEIGHT_MAX );
-    if(_detec->IDebug) aff("_data",(qint64)_data,FFT_HEIGHT_MAX*sizeof(float));
-    _coeff = new float[FFT_HEIGHT_HALF_MAX];
-    if(_detec->IDebug) aff("_coeff",(qint64)_coeff,FFT_HEIGHT_HALF_MAX*sizeof(float));
+    _coeff = new double[FFT_HEIGHT_HALF_MAX];
     SonogramArray = new qint16*[MAXHEIGHT];
-    if(_detec->IDebug) aff("_sonogramArray",(qint64)SonogramArray,MAXHEIGHT*sizeof(qint16 *));
     PointFlagsArray = new char *[MAXHEIGHT];
-    if(_detec->IDebug) aff("_pointFlagsArray",(qint64)PointFlagsArray,MAXHEIGHT*sizeof(char *));
     _charSonogramArray = new char[MAXHEIGHT*SONOGRAM_WIDTH_MAX*sizeof(qint16)];
-    if(_detec->IDebug) aff("_charSonogramArray",(qint64)_charSonogramArray,MAXHEIGHT*SONOGRAM_WIDTH_MAX*sizeof(qint16));
     _charPointFlagsArray = new char[MAXHEIGHT*LD8];
-    if(_detec->IDebug) aff("_charPointFlagsArray",(qint64)_charPointFlagsArray,MAXHEIGHT*LD8);
     for ( int i=0 ; i <MAXHEIGHT ; i++)
     {
         SonogramArray[i] = (qint16 *)((char *)(_charSonogramArray+(i*SONOGRAM_WIDTH_MAX*sizeof(qint16))));
@@ -90,9 +83,7 @@ void DetecTreatment::InitializeDetecTreatment()
     }
     EnergyMin = 0.0f;
     _charParamsArray = new char[MAXCRI*NBTAB*NBPAR*sizeof(float)];
-    if(_detec->IDebug) aff("_charParamsArray",(qint64)_charParamsArray,MAXCRI*NBTAB*NBPAR*sizeof(float));
     _paramsArray = new float**[MAXCRI];
-    if(_detec->IDebug) aff("_paramsArray",(qint64)_paramsArray,MAXCRI*sizeof(float **));
     _numberCallParameters = VectPar.size();
     for (int i=0;i < MAXCRI; i++)
     {
@@ -101,11 +92,8 @@ void DetecTreatment::InitializeDetecTreatment()
             _paramsArray[i][j] = (float *)((char *)(_charParamsArray+(i*NBTAB*NBPAR+j*NBPAR)*sizeof(float)));
     }
     LowSlope = new int[NCRETES*MAXCRI*2];
-    if(_detec->IDebug) aff("_lowSlope",(qint64)LowSlope,NCRETES*MAXCRI*2*sizeof(int));
     Inflexion1 = new int[NCRETES*MAXCRI*2];
-    if(_detec->IDebug) aff("_inflexion1",(qint64)Inflexion1,NCRETES*MAXCRI*2*sizeof(int));
     Inflexion3 = new int[NCRETES*MAXCRI*2];
-    if(_detec->IDebug) aff("_inflexion3",(qint64)Inflexion3,NCRETES*MAXCRI*2*sizeof(int));
     _harmonic=new int *[2];
     _dpm=new float *[2];
     _dypm=new int *[2];
@@ -113,69 +101,39 @@ void DetecTreatment::InitializeDetecTreatment()
     for(int k=0;k<2;k++)
     {
         _harmonic[k]=new int [MAXCRI];
-        if(_detec->IDebug) aff(QString("_harmonic[")+QString::number(k)+"]",(qint64)_harmonic[k],MAXCRI*sizeof(int));
         _dpm[k]=new float[MAXCRI];
-        if(_detec->IDebug) aff(QString("_dpm[")+QString::number(k)+"]",(qint64)_dpm[k],MAXCRI*sizeof(float));
         _dypm[k]=new int[MAXCRI];
-        if(_detec->IDebug) aff(QString("_dypm[")+QString::number(k)+"]",(qint64)_dypm[k],MAXCRI*sizeof(int));
         _ypm[k]=new int[MAXCRI];
-        if(_detec->IDebug) aff(QString("_ypm[")+QString::number(k)+"]",(qint64)_ypm[k],MAXCRI*sizeof(int));
     }
     _tabY = new float[MAXHEIGHT];
-    if(_detec->IDebug) aff("_tabY",(qint64)_tabY,MAXHEIGHT*sizeof(float));
     _numberPixelsPerY = new int[MAXHEIGHT];
-    if(_detec->IDebug) aff("_numberPixelsPerY",(qint64)_numberPixelsPerY,MAXHEIGHT*sizeof(int));
     _numberPixelsPerX = new int[MAXLARCRI];
-    if(_detec->IDebug) aff("_numberPixelsPerX",(qint64)_numberPixelsPerX,MAXLARCRI*sizeof(int));
     _averagePerX = new float[MAXLARCRI];
-    if(_detec->IDebug) aff("_averagePerX",(qint64)_averagePerX,MAXLARCRI*sizeof(float));
     _xMinPerY = new quint16[MAXHEIGHT];
-    if(_detec->IDebug) aff("_xMinPerY",(qint64)_xMinPerY,MAXHEIGHT*sizeof(quint16));
     _xSecondWestRidgePerY = new quint16[MAXHEIGHT];
-    if(_detec->IDebug) aff("_xSecondWestRidgePerY",(qint64)_xSecondWestRidgePerY,MAXHEIGHT*sizeof(quint16));
     _xMaxPerY = new int[MAXHEIGHT];
-    if(_detec->IDebug) aff("_xMaxPerY",(qint64)_xMaxPerY,MAXHEIGHT*sizeof(int));
     _yMinPerX = new quint16[MAXLARCRI];
-    if(_detec->IDebug) aff("_yMinPerX",(qint64)_yMinPerX,MAXLARCRI*sizeof(quint16));
     _yMaxPerX = new quint16[MAXLARCRI];
-    if(_detec->IDebug) aff("_yMaxPerX",(qint64)_yMaxPerX,MAXLARCRI*sizeof(quint16));
     _yEbarPerX = new float[MAXLARCRI];
-    if(_detec->IDebug) aff("_yEbarPerX",(qint64)_yEbarPerX,MAXLARCRI*sizeof(float));
     _totYEPerX = new float[MAXLARCRI];
-    if(_detec->IDebug) aff("_totYEPerX",(qint64)_totYEPerX,MAXLARCRI*sizeof(float));
     _eMaxPerX = new float[MAXLARCRI];
-    if(_detec->IDebug) aff("_eMaxPerX",(qint64)_eMaxPerX,MAXLARCRI*sizeof(float));
     int maxOfTwo = qMax(MAXLARCRI,MAXHEIGHT);
     _slope = new float[maxOfTwo];
-    if(_detec->IDebug) aff("_slope",(qint64)_slope,maxOfTwo*sizeof(float));
     _charTabX = new char[MAXCRI*MAXLARCRI*sizeof(float)];
-    if(_detec->IDebug) aff("_charTabX",(qint64)_charTabX,MAXCRI*MAXLARCRI*sizeof(float));
     _tabX = new float*[MAXCRI];
     for(int i=0 ; i < MAXCRI ; i++) _tabX[i] = (float *)((char *)(_charTabX+(i*MAXLARCRI*sizeof(float))));
-    if(_detec->IDebug) aff("_tabX",(qint64)_tabX,MAXCRI*sizeof(float *));
     _charYEmaxPerX = new char[MAXCRI*MAXLARCRI*sizeof(qint16)];
-    if(_detec->IDebug) aff("_charYEmaxPerX",(qint64)_charYEmaxPerX,MAXCRI*MAXLARCRI*sizeof(qint16));
     _yEmaxPerX = new quint16*[MAXCRI];
     for(int i=0;i<MAXCRI;i++)  _yEmaxPerX[i] = (quint16 *)((char *)(_charYEmaxPerX+(i*MAXLARCRI*sizeof(quint16))));
-    if(_detec->IDebug) aff("_yEmaxPerX",(qint64)_yEmaxPerX,MAXCRI*sizeof(quint16 *));
     _charTabYX = new char[MAXHEIGHT*MAXLARCRI*sizeof(float)];
-    if(_detec->IDebug) aff("_charTabYX",(qint64)_charTabYX,MAXHEIGHT*MAXLARCRI*sizeof(float));
     _tabYX = new float*[MAXHEIGHT];
     for(int i=0;i<MAXHEIGHT;i++) _tabYX[i] = (float *)((char *)(_charTabYX+(i*MAXLARCRI*sizeof(float))));
-    if(_detec->IDebug) aff("_tabYX",(qint64)_tabYX,MAXHEIGHT*sizeof(float *));
     EnergyColumAverage = new float[SONOGRAM_WIDTH_MAX];
-    if(_detec->IDebug) aff("_energyMoyCol",(qint64)EnergyColumAverage,SONOGRAM_WIDTH_MAX*sizeof(float));
     FlagGoodCol = new bool[SONOGRAM_WIDTH_MAX];
-    if(_detec->IDebug) aff("_flagGoodCol",(qint64)FlagGoodCol,SONOGRAM_WIDTH_MAX*sizeof(bool));
     FlagGoodColInitial = new bool[SONOGRAM_WIDTH_MAX];
-    if(_detec->IDebug) aff("_flagGoodColInitial",(qint64)FlagGoodColInitial,SONOGRAM_WIDTH_MAX*sizeof(bool));
     _sortMp = new int[MAXCRI];
-    if(_detec->IDebug) aff("sortMp",(qint64)_sortMp,MAXCRI*sizeof(int));
     _invMp = new int[MAXCRI];
-    if(_detec->IDebug) aff("invMp",(qint64)_invMp,MAXCRI*sizeof(int));
     _xMp = new int[MAXCRI];
-    if(_detec->IDebug) aff("xMp",(qint64)_xMp,MAXCRI*sizeof(int));
-    if(_detec->IDebug) _detec->LogStream << "i9" << endl;
     _detec->LogStream << "dtt modefreq=" << _modeFreq << endl;
 }
 
@@ -451,95 +409,54 @@ void DetecTreatment::initVectorParams()
 // in the method:InitializeDetecTreatment()
 void DetecTreatment::EndDetecTreatment()
 {
-    if(_detec->IDebug) _detec->LogStream << "e1" << endl;
-    if(_detec->IDebug) aff("_data",(qint64)_data,0);
     fftwf_free(_data);
-    if(_detec->IDebug) aff("_coeff",(qint64)_coeff,0);
     delete _coeff;
-    if(_detec->IDebug) aff("_charSonogramArray",(qint64)_charSonogramArray,0);
     delete[] _charSonogramArray;
-    if(_detec->IDebug) aff("_charPointFlagsArray",(qint64)_charPointFlagsArray,0);
     delete[] _charPointFlagsArray;
-    if(_detec->IDebug) aff("_sonogramArray",(qint64)SonogramArray,0);
     delete[] SonogramArray;
-    if(_detec->IDebug) aff("_pointFlagsArray",(qint64)PointFlagsArray,0);
     delete[] PointFlagsArray;
     for (int i=0;i < MAXCRI; i++) delete[] _paramsArray[i];
-    if(_detec->IDebug) aff("_paramsArray",(qint64)_paramsArray,0);
     delete[] _paramsArray;
-    if(_detec->IDebug) aff("_charParamsArray",(qint64)_charParamsArray,0);
     delete[] _charParamsArray;
-    if(_detec->IDebug) aff("_lowSlope",(qint64)LowSlope,0);
     delete[] LowSlope;
-    if(_detec->IDebug) aff("_inflexion1",(qint64)Inflexion1,0);
     delete[] Inflexion1;
-    if(_detec->IDebug) aff("_inflexion3",(qint64)Inflexion3,0);
     delete[] Inflexion3;
     for(int k=0;k<2;k++)
     {
-        if(_detec->IDebug) aff(QString("_harmonic[")+QString::number(k)+"]",(qint64)_harmonic[k],0);
         delete[] _harmonic[k];
-        if(_detec->IDebug) aff(QString("_dpm[")+QString::number(k)+"]",(qint64)_dpm[k],0);
         delete[] _dpm[k];
-        if(_detec->IDebug) aff(QString("_dypm[")+QString::number(k)+"]",(qint64)_dypm[k],0);
         delete[] _dypm[k];
-        if(_detec->IDebug) aff(QString("_ypm[")+QString::number(k)+"]",(qint64)_ypm[k],0);
         delete[] _ypm[k];
     }
     delete[] _harmonic;
     delete[] _dpm;
     delete[] _dypm;
     delete[] _ypm;
-    if(_detec->IDebug) aff("_tabY",(qint64)_tabY,0);
     delete[] _tabY;
-    if(_detec->IDebug) aff("_numberPixelsPerY",(qint64)_numberPixelsPerY,0);
     delete[] _numberPixelsPerY;
-    if(_detec->IDebug) aff("_numberPixelsPerX",(qint64)_numberPixelsPerX,0);
     delete[] _numberPixelsPerX;
-    if(_detec->IDebug) aff("_averagePerX",(qint64)_averagePerX,0);
     delete[] _averagePerX;
-    if(_detec->IDebug) aff("_xMinPerY",(qint64)_xMinPerY,0);
     delete[] _xMinPerY;
-    if(_detec->IDebug) aff("_xMaxPerY",(qint64)_xMaxPerY,0);
     delete[] _xMaxPerY;
-    if(_detec->IDebug) aff("_yMinPerX",(qint64)_yMinPerX,0);
     delete[] _yMinPerX;
-    if(_detec->IDebug) aff("_yMaxPerX",(qint64)_yMaxPerX,0);
     delete[] _yMaxPerX;
-    if(_detec->IDebug) aff("_yEbarPerX",(qint64)_yEbarPerX,0);
     delete[] _yEbarPerX;
-    if(_detec->IDebug) aff("_totYEPerX",(qint64)_totYEPerX,0);
     delete[] _totYEPerX;
-    if(_detec->IDebug) aff("_eMaxPerX",(qint64)_eMaxPerX,0);
     delete[] _eMaxPerX;
-    if(_detec->IDebug) aff("_xSecondWestRidgePerY",(qint64)_xSecondWestRidgePerY,0);
     delete[] _xSecondWestRidgePerY;
-    if(_detec->IDebug) aff("_slope",(qint64)_slope,0);
     delete[] _slope;
-    if(_detec->IDebug) aff("_tabX",(qint64)_tabX,0);
     delete[] _tabX;
-    if(_detec->IDebug) aff("_charTabX",(qint64)_charTabX,0);
     delete[] _charTabX;
-    if(_detec->IDebug) aff("_yEmaxPerX",(qint64)_yEmaxPerX,0);
     delete[] _yEmaxPerX;
-    if(_detec->IDebug) aff("_charYEmaxPerX",(qint64)_charYEmaxPerX,0);
     delete[] _charYEmaxPerX;
-    if(_detec->IDebug) aff("_tabYX",(qint64)_tabYX,0);
     delete[] _tabYX;
-    if(_detec->IDebug) aff("_charTabYX",(qint64)_charTabYX,0);
     delete[] _charTabYX;
-    if(_detec->IDebug) aff("_energyMoyCol",(qint64)EnergyColumAverage,0);
     delete[] EnergyColumAverage;
-    if(_detec->IDebug) aff("_flagGoodCol",(qint64)FlagGoodCol,0);
     delete[] FlagGoodCol;
     delete[] FlagGoodColInitial;
-    if(_detec->IDebug) aff("sortMp",(qint64)_sortMp,0);
     delete[] _sortMp;
-    if(_detec->IDebug) aff("invMp",(qint64)_invMp,0);
     delete[] _invMp;
-    if(_detec->IDebug) aff("xMp",(qint64)_xMp,0);
     delete[] _xMp;
-    if(_detec->IDebug) _detec->LogStream << "e9" << endl;
 }
 
 // CallTreatmentsForOneFile: a very important method which is called by the object
@@ -617,9 +534,11 @@ void DetecTreatment::clearVars()
 // debug informations recorded in debug mode
 void DetecTreatment::aff(QString name,qint64 address,int size)
 {
+    /*
     _detec->LogStream << "P:"<< name << " : " << address ;
     if(size==0) _detec->LogStream << " fr" << endl;
     else _detec->LogStream << " s=" << size << endl;
+    */
 }
 
 // this method determines if a .wav file corresponds
@@ -751,15 +670,16 @@ bool DetecTreatment::computeFFT(QString &wavFile)
 {
     int iCount;
     int readcount;
-    float a = 0.0f;
-    EnergyMax        = 0.0f;
-    EnergyMin        = 0.0f;
-    FftHeightHalf		= (int)ceil((float)_fftHeight/(float)2);
+    double a = 0.0d;
+    double epsilon = 0.0001d;
+    EnergyMax        = 0.0d;
+    EnergyMin        = 0.0d;
+    FftHeightHalf		= (int)ceil((float)_fftHeight/2.0f);
     _iOverlapMoving	= (int)ceil((float)_fftHeight/(float)(_nbo*2));
     SonogramWidth		= (int)ceil(_nbo*2*(float)_soundFileInfo.frames/(float)_fftHeight)+1;
-    MsPerX =(float)(FftHeightHalf*1000)/(_nbo*_soundFileInfo.samplerate*TimeExpansion); //Time: msec
-    KhzPerY =(float)(_soundFileInfo.samplerate*TimeExpansion)/(float)(_fftHeight*1000); //Freq:khz
-    if(SonogramWidth*MsPerX < 10.0f)
+    MsPerX =(double)(FftHeightHalf*1000)/(_nbo*_soundFileInfo.samplerate*TimeExpansion); //Time: msec
+    KhzPerY =(double)(_soundFileInfo.samplerate*TimeExpansion)/(double)(_fftHeight*1000); //Freq:khz
+    if((double)SonogramWidth*MsPerX < 10.0d)
     {
         if(_detec->ErrorFileOpen) _detec->ErrorStream << wavFile << ": too short duration" << endl;
         _detec->LogStream << "too short duration:" << SonogramWidth*MsPerX << " ms" << endl;
@@ -775,13 +695,13 @@ bool DetecTreatment::computeFFT(QString &wavFile)
     }
     sf_seek(_soundFile, 0, SEEK_END);
     _pPlan = &(_detec->PMainWindow->Plan[_detec->IThread][_iH]);
-    float fact1=2.0f*PI;
-    float fact2=4.0f*PI;
-    float quot1=FftHeightHalf-1;
+    double fact1=2.0d*PI;
+    double fact2=4.0f*PI;
+    double quot1=FftHeightHalf-1;
     LimY = qMin(FftHeightHalf,MAXHEIGHT);
     for (int i = 0 ; i < FftHeightHalf ; i++)
     {
-        _coeff[i] = 0.435f - 0.5f*cos(fact1*i/quot1)+ 0.065f*cos(fact2*i/quot1);
+        _coeff[i] = 0.435d - 0.5d*cos(fact1*i/quot1)+ 0.065d*cos(fact2*i/quot1);
     }
     for (int iLoop = 0 ; iLoop < _nbo; iLoop++)
     {
@@ -802,15 +722,15 @@ bool DetecTreatment::computeFFT(QString &wavFile)
             fftwf_execute( *_pPlan );
             qint16 *sml;
             int jc=iCount*_nbo+iLoop;
-            float b;
+            double b;
             for(int i =0; i < LimY;  i++)
             {
                 sml=SonogramArray[i];
                 a = pow(_fftHeight*_fftRes[i][0], 2) + pow(_fftHeight*_fftRes[i][1], 2);
                 if (i > _freqMin && a !=0 )
                 {
-                    b=10*log10(a);
-                    sml[jc] = (qint16)(b*100.0f);
+                    b=10*log10(a)+epsilon;
+                    sml[jc] = (qint16)(b*100.0d);
                     if(b>EnergyMax) EnergyMax=b;
                     else
                     {
@@ -835,11 +755,11 @@ bool DetecTreatment::computeFFT(QString &wavFile)
 // to improve the detection of cries...
 void DetecTreatment::correctNoise()
 {
-    _minY=(int)(((float)_freqMin)/((float)KhzPerY));
+    _minY=(int)(((double)_freqMin)/KhzPerY);
     if(_modeFreq == 2)
-        _maxY=(int)(((float)FREQ_MAX)/(10*((float)KhzPerY)));
+        _maxY=(int)(((double)FREQ_MAX)/(10.0d*KhzPerY));
     else
-        _maxY=(int)(((float)FREQ_MAX)/((float)KhzPerY));
+        _maxY=(int)(((double)FREQ_MAX)/KhzPerY);
     if(_maxY>LimY-1) _maxY = LimY-1;
     if(_detec->IDebug)
 	{
@@ -868,18 +788,17 @@ void DetecTreatment::correctNoise()
     int decalThreshold = 0;
     if(minEmc < maxEmc)
     {
-        float totEmc = 0.0f;
+        double totEmc = 0.0d;
         for(int y = minEmc; y < maxEmc ; y++)
         {
             qint16 *fc = SonogramArray[y];
             for (int x = 0 ; x < SonogramWidth ; x++) EnergyColumAverage[x]  += (float)(*fc++);
         }
-        float diviseur = 100.0f * ( (float) (maxEmc - minEmc) );
+        double diviseur = 100.0d * ( (double) (maxEmc - minEmc) );
         float *pemc = EnergyColumAverage;
         for (int x = 0 ; x < SonogramWidth ; x++) {*pemc /= diviseur; totEmc += (*pemc++);}
         decalThreshold = (int)( ((totEmc/SonogramWidth) - ((float)(_lowThresholdJB+_highThresholdJB)/2.0f))/4      );
     }
-    if(_detec->IDebug) _detec->LogStream << "gap=" <<decalThreshold << endl;
     bool unSaut = false;
     WithSilence = false;
     int highThresholdJB = _highThresholdJB+decalThreshold;
@@ -894,7 +813,7 @@ void DetecTreatment::correctNoise()
         int widthBigControl = _widthBigControl;
         int widthLittleControl = _widthLittleControl;
         for (int x = 0 ; x <= widthBigControl ; x++) FlagGoodColInitial[x]=valFlag;
-        float dif2Col,averageLittleBefore,averageLittleNext,averageBigBefore,averageBigNext;
+        double dif2Col,averageLittleBefore,averageLittleNext,averageBigBefore,averageBigNext;
         bool notYet = true;
         if(widthBigControl > SonogramWidth/3)
         {
@@ -933,10 +852,6 @@ void DetecTreatment::correctNoise()
                     patience = 0;
                     if(valFlag==false)
                     {
-                        if(_detec->IDebug) _detec->LogStream << "jumping up (ms)" << x * MsPerX << " (x=" << x << ")"
-                                         << "  before : " << averageLittleBefore << ", " << averageBigBefore
-                                         << "  after : " << averageLittleNext << ", " << averageBigNext
-                                         << endl;
                         notYet =false;
                         unSaut = true;
                     }
@@ -945,12 +860,6 @@ void DetecTreatment::correctNoise()
                             && averageLittleBefore < lowThresholdJB
                             && averageBigBefore < lowThresholdJB)
                     {
-                        if(_detec->IDebug) _detec->LogStream << "jumping up (ms)" << x * MsPerX << " (x=" << x << ")"
-                                         << "  before : " << averageLittleBefore << ", " << averageBigBefore
-                                         << "  after : " << averageLittleNext << ", " << averageBigNext
-                                         << endl;
-                        if(_detec->IDebug) _detec->LogStream << "what precedes becomes false " << endl;
-
                         for(int j=x-1;j>=0;j--)
                         {
                             if(FlagGoodColInitial[j]==true) FlagGoodColInitial[j]=false;
@@ -980,11 +889,6 @@ void DetecTreatment::correctNoise()
                 {
                     unSaut = true;
                     patience = 0;
-                    if(_detec->IDebug) _detec->LogStream << "jumping down (ms)" <<  x * MsPerX << " (x=" << x << ")"
-                                     << "  before : " << averageLittleBefore << ", " << averageBigBefore
-                                     << "  after : " << averageLittleNext << ", " << averageBigNext
-                                     << endl;
-                    if(_detec->IDebug && !valFlag) _detec->LogStream << "already false" << endl;
                     valFlag=false;
                     notYet =false;
                 }
@@ -1109,6 +1013,7 @@ void DetecTreatment::correctNoise()
 // threshold (_stopThreshold)
 void DetecTreatment::shapesDetects()
 {
+    double epsilon = 0.0001d;
     for(int j=0;j<MAXHEIGHT;j++) memset(PointFlagsArray[j],0,LD8);
     _maxCallWidth = 0;
     _maxCallHeight = 0;
@@ -1136,7 +1041,7 @@ void DetecTreatment::shapesDetects()
                     _vectorCallPoints.clear();
                     Point.setX(x);
                     Point.setY(y);
-                    _callEnergyMax = (float)smy[x] / 100.0f;
+                    _callEnergyMax = (double)smy[x] / 100.0d;
                     _callEnergyMaxIndex = 0;
                     _vectorCallPoints.push_back(Point);
                     _xMin=x; _xMax=x;
@@ -1167,7 +1072,7 @@ void DetecTreatment::shapesDetects()
                                         {
                                             if((bC & (1 << dP))==0)
                                             {
-                                                float val = (float)SonogramArray[jy][jx]/100.0f;
+                                                double val = (double)SonogramArray[jy][jx]/100.0d;
                                                 if (val > EnergyStopThreshold)
                                                 {
                                                     Point.setX(jx);
@@ -1204,9 +1109,9 @@ void DetecTreatment::shapesDetects()
                             break;
                         }
                     }
-                    float freqpm=((float)_vectorCallPoints.at(_callEnergyMaxIndex).y())*KhzPerY;
+                    double freqpm=((double)_vectorCallPoints.at(_callEnergyMaxIndex).y())*KhzPerY;
 
-                    if(freqpm>_freqCallMin && (_xMax-_xMin+1)<MAXLARCRI
+                    if(freqpm>(_freqCallMin+epsilon) && (_xMax-_xMin+1)<MAXLARCRI
                             && (_yMax-_yMin+1)<MAXHEIGHT
                             && !onsarrete)
                     {
@@ -1283,6 +1188,8 @@ void DetecTreatment::detectsParameter2()
 {
     float *oParam;
     float *oParamCrete[NCRETES];
+    double epsilon = 0.0001d;
+    //
     //if(_detec->IDebug) _detec->_logText << "dp2-1" << endl ;
     int nbcris = CallsArray.size();
     if(nbcris< 1 || _maxCallWidth < 1 || _maxCallHeight < 1) return;
@@ -1296,7 +1203,6 @@ void DetecTreatment::detectsParameter2()
     {
         //if(_detec->IDebug) _detec->_logText << endl << "-3-icri=" << icri << endl ; //+++
         oParam = _paramsArray[icri][SH];
-        //if(_detec->IDebug) _detec->_logText << "-3,1" << endl ; //+++
         for(int j=0;j<NCRETES;j++) oParamCrete[j] = _paramsArray[icri][j+1];
         //if(_detec->IDebug) _detec->_logText << "-4" << endl;  //+++
         QVector<QPoint> unemat = CallsArray.at(icri);
@@ -1333,24 +1239,27 @@ void DetecTreatment::detectsParameter2()
             _yEmaxPerX[icri][k]=0;
             _eMaxPerX[k]=0.0f;
         }
-        float eTot = 0.0f;
-        float eMoy = 0.0f;
+        double eTot = 0.0d;
+        double eMoy = 0.0d;
+
         for(int j=0;j<tailleforme;j++)
         {
             int x=unemat.at(j).x();
             int y=unemat.at(j).y();
-            float e = (float)SonogramArray[y][x]/100.0f;
+            double e = (double)SonogramArray[y][x]/100.0f;
             _tabY[y-ymin]+=e;
             eTot += e;
             _numberPixelsPerY[y-ymin]++;
             _tabX[icri][x-xmin]+=e;
+
             _numberPixelsPerX[x-xmin]++;
-            _totYEPerX[x-xmin]+=e*(float)y;
+            _totYEPerX[x-xmin]+=e*(double)y;
             if(y>_yMaxPerX[x-xmin]) _yMaxPerX[x-xmin]=y;
             if(y<_yMinPerX[x-xmin] || _yMinPerX[x-xmin]==0) _yMinPerX[x-xmin]=y;
             if(x>_xMaxPerY[y-ymin]) _xMaxPerY[y-ymin]=x;
             if(x<_xMinPerY[y-ymin]) _xMinPerY[y-ymin]=x;
-            if(e>_eMaxPerX[x-xmin])
+
+            if(e>(_eMaxPerX[x-xmin]+epsilon))
             {
                 _eMaxPerX[x-xmin]=e;
                 _yEmaxPerX[icri][x-xmin]=y;
@@ -1358,9 +1267,8 @@ void DetecTreatment::detectsParameter2()
             _tabYX[y-ymin][x-xmin]=e;
 
         }
-        //if(_detec->IDebug) _detec->_logText << "ymin=" << ymin << " ymax=" << ymax << endl;
         eMoy = eTot / tailleforme;
-        float erec; int xc;
+        double erec; int xc;
         for(int k=0;k<=ymax-ymin;k++)
         {
             xc=_xMinPerY[k];
@@ -1390,17 +1298,17 @@ void DetecTreatment::detectsParameter2()
         }
         int yfds = 0;
         int yfdm = 0;
-        float recfds= 0.0f;
-        float recfdm= 0.0f;
+        double recfds= 0.0d;
+        double recfdm= 0.0d;
         for(int k=0;k<=ymax-ymin;k++)
         {
-            if(_tabY[k]>recfds)
+            if(_tabY[k]>(recfds+epsilon))
             {
                 yfds=ymin+k;
                 recfds=_tabY[k];
             }
             if(_numberPixelsPerY[k]>0)
-                if(_tabY[k]/_numberPixelsPerY[k]>recfdm)
+                if(_tabY[k]/_numberPixelsPerY[k]>(recfdm+epsilon))
                 {
                     yfdm=ymin+k;
                     recfdm=_tabY[k]/_numberPixelsPerY[k];
@@ -1408,18 +1316,18 @@ void DetecTreatment::detectsParameter2()
         }
         int xpps = 0;
         int xppm = 0;
-        float recpps= 0.0f;
-        float recppm= 0.0f;
+        double recpps= 0.0d;
+        double recppm= 0.0d;
         for(int k=0;k<=xmax-xmin;k++)
         {
-            if(_tabX[icri][k]>recpps)
+            if(_tabX[icri][k]>(recpps+epsilon))
             {
                 xpps=xmin+k;
                 recpps=_tabX[icri][k];
             }
             if(_numberPixelsPerX[k]>0)
             {
-                if(_tabX[icri][k]/_numberPixelsPerX[k]>recppm)
+                if(_tabX[icri][k]/_numberPixelsPerX[k]>(recppm+epsilon))
                 {
                     xppm=xmin+k;
                     recppm=_tabX[icri][k]/_numberPixelsPerX[k];
@@ -1428,67 +1336,56 @@ void DetecTreatment::detectsParameter2()
             }
 
         }
-        oParam[StTime] = (float)xmin*(float)MsPerX;
-        oParam[Dur] = (xmax-xmin)*(float)MsPerX;
+        double dStTime = (double)xmin*(double)MsPerX;
+        double dDur = (double)(xmax-xmin)*(double)MsPerX;
+        oParam[StTime] = dStTime;
+        oParam[Dur] = dDur;
         int criprec=icri;
         if(icri>0)
             for(int jcri=icri-1;jcri>=0;jcri--)
             {
-                if(_paramsArray[jcri][SH][StTime] + _paramsArray[jcri][SH][Dur]<oParam[StTime])
+                double ddcomp = dStTime + epsilon - (double)(_paramsArray[jcri][SH][StTime]) - (double)(_paramsArray[jcri][SH][Dur]);
+                if(ddcomp > 0)
                 {
                     criprec=jcri;
                     break;
                 }
             }
+
         if(criprec==icri) oParam[PrevSt] = 9999.0f;
         else oParam[PrevSt] = oParam[StTime] - _paramsArray[criprec][SH][StTime];
-        oParam[Fmax]=ymax*(float)KhzPerY;
-        oParam[Fmin]=ymin*(float)KhzPerY;
+
+        oParam[Fmax]=(double)ymax*KhzPerY;
+        oParam[Fmin]=(double)ymin*KhzPerY;
         oParam[BW]=oParam[Fmax]-oParam[Fmin];
-        oParam[FreqMP] = (float)MasterPoints.at(icri).y()*KhzPerY;
-        oParam[PosMP] = (float)(MasterPoints.at(icri).x()-xmin+0.5f)/(float)(xmax-xmin+1.0f);
+        oParam[FreqMP] = (double)MasterPoints.at(icri).y()*KhzPerY;
+        oParam[PosMP] = (double)(MasterPoints.at(icri).x()-xmin+0.5f)/(double)(xmax-xmin+1.0f);
         oParam[FreqPkS]  = yfds * KhzPerY;
         oParam[FreqPkM] = yfdm * KhzPerY;
-        oParam[PosPkS]   = (float)(xpps-xmin+0.5f)/(float)(xmax-xmin+1.0f);
-        oParam[PosPkM]  = (float)(xppm-xmin+0.5f)/(float)(xmax-xmin+1.0f);
-        oParam[FreqPkS2] = (float) _yEmaxPerX[icri][xpps-xmin] * KhzPerY;
-        oParam[FreqPkM2] = (float) _yEmaxPerX[icri][xppm-xmin] * KhzPerY;
-        float prevmp = 9999.0f;
-        float prevsmart1 =9999.0f;
-        int pmp = _invMp[icri];
-        if(pmp>0)
-        {
-            float freqmp = oParam[FreqMP];
-            prevmp=(MasterPoints.at(icri).x()-MasterPoints.at(_sortMp[pmp-1]).x())*MsPerX;
-            for(int k=pmp-1;k>=0;k--)
-            {
-                if(_paramsArray[_sortMp[k]][SH][Fmin] < freqmp
-                        && _paramsArray[_sortMp[k]][SH][Fmax] > freqmp)
-                {
-                    prevsmart1 = (MasterPoints.at(icri).x()-MasterPoints.at(_sortMp[k]).x())*MsPerX;
-                    break;
-                }
-            }
-        }
-        oParam[PrevMP1] = prevmp;
-        oParam[PrevMP2] = prevsmart1;
+        oParam[PosPkS]   = (double)(xpps-xmin+0.5f)/(double)(xmax-xmin+1.0f);
+        oParam[PosPkM]  = (double)(xppm-xmin+0.5f)/(double)(xmax-xmin+1.0f);
+        oParam[FreqPkS2] = (double) _yEmaxPerX[icri][xpps-xmin] * KhzPerY;
+        oParam[FreqPkM2] = (double) _yEmaxPerX[icri][xppm-xmin] * KhzPerY;
+        oParam[PrevMP1] = 9999.0f;
+        oParam[PrevMP2] = 9999.0f;
         oParam[NextMP1] = 9999.0f;
         oParam[NextMP2] = 9999.0f;
-        float famp[4];
-        float namp[4];
+        double famp[4];
+        double namp[4];
         for(int j=0;j<4;j++)
         {
-            famp[j] = 0.0f;
-            namp[j] = 0.0f;
+            famp[j] = 0.0d;
+            namp[j] = 0.0d;
         }
-        float prorata,bdeb,bfin,larco,lartot;
+        double prorata,bdeb,bfin,larco,lartot;
         int ideb,ifin;
         //if(_detec->IDebug) _detec->_logText << "-6" << endl ;  //+++
-        lartot=(float)(xmax-xmin+1);
+        lartot=(double)(xmax-xmin+1);
+
         for(int k=0;k<xmax-xmin+1;k++)
         {
-            bdeb=(((float)k)*4.0f)/lartot;
-            bfin=(((float)(k+1))*4.0f)/lartot;
+            bdeb=(((double)k)*4.0d)/lartot;
+            bfin=(((double)(k+1))*4.0d)/lartot;
             ideb=(int)bdeb;
             ifin=(int)bfin;
             larco=bfin-bdeb;
@@ -1498,19 +1395,19 @@ void DetecTreatment::detectsParameter2()
                 if(j==4) break;
                 if(j==ideb)
                 {
-                    if(ifin==ideb) prorata=1.0f/larco;
-                    else prorata = ((float)(j+1)-bdeb)/larco;
+                    if(ifin==ideb) prorata=1.0d/larco;
+                    else prorata = ((double)(j+1)-bdeb)/larco;
                 }
                 else
                 {
-                    if(bfin < (j+1)) prorata=(bfin-(float)j)/larco;
-                    else prorata = 1.0f/larco;
+                    if(bfin < (j+1)) prorata=(bfin-(double)j)/larco;
+                    else prorata = 1.0d/larco;
                 }
-                famp[j]+=_tabX[icri][k]*prorata;
+                famp[j]+=(double)_tabX[icri][k]*prorata;
                 namp[j]+=prorata;
             }
         }
-        if(namp[0]>0) oParam[Amp1] = famp[0]*KhzPerY/namp[0];
+        if(namp[0]>0) oParam[Amp1] = famp[0]*KhzPerY/namp[0]+epsilon;
         else oParam[Amp1] = 0.0f;
         if(namp[1]>0) oParam[Amp2] = famp[1]*KhzPerY/namp[1];
         else oParam[Amp2] = 0.0f;
@@ -1522,7 +1419,7 @@ void DetecTreatment::detectsParameter2()
         {
             int jdeb,jfin,x,y;
             int nps=0;
-            float bruit=0.0f,bruit_moyen=0.0f;
+            double bruit=0.0d,bruit_moyen=0.0d;
             if(inoise<2) {jdeb=ymin;jfin=ymax;}
             else {jdeb=xmin;jfin=xmax;}
             for(int j=jdeb;j<=jfin;j++)
@@ -1538,20 +1435,20 @@ void DetecTreatment::detectsParameter2()
                         if(inoise==3) y=_yMaxPerX[j-xmin]+k;
                         if(x>=0 && x<SonogramWidth && y>0 && y<FftHeightHalf)
                         {
-                            bruit += (float)SonogramArray[y][x];
+                            bruit += (double)SonogramArray[y][x];
                             nps++;
                         }
                     }
                 }
             }
-            if(nps>0) bruit_moyen=bruit/ ((float)nps*100.0f);
+            if(nps>0) bruit_moyen=bruit/ ((double)nps*100.0d);
             if(inoise==0)oParam[NoisePrev]  = bruit_moyen;
             if(inoise==1)oParam[NoiseNext] = bruit_moyen;
             if(inoise==2)oParam[NoiseDown]  = bruit_moyen;
             if(inoise==3)oParam[NoiseUp]    = bruit_moyen;
         }
         int nms=0;
-        float sdm=0.0f;
+        double sdm=0.0d;
         for(int k=0;k<xmax-xmin+1;k++)
         {
             if(_numberPixelsPerX[k]>0)
@@ -1561,18 +1458,18 @@ void DetecTreatment::detectsParameter2()
                 nms++;
             }
         }
-        float mdm = sdm/nms;
-        float sdc = 0.0f;
+        double mdm = sdm/nms;
+        double sdc = 0.0d;
         for(int k=0;k<xmax-xmin+1;k++)
         {
             if(_numberPixelsPerX[k]>0) sdc += (_averagePerX[k]-mdm)*(_averagePerX[k]-mdm);
         }
-        oParam[CVAmp]=pow(sdc/(float)nms,0.5);
+        oParam[CVAmp]=pow(sdc/(double)nms,0.5);
         int tempsOuest[2];
         tempsOuest[0] = qMax(_xMinPerY[0],_xMinPerY[ymax-ymin])-xmin+1;
-        oParamCrete[3][Dur] = (float)tempsOuest[0]*(float)MsPerX;
+        oParamCrete[3][Dur] = (double)tempsOuest[0]*(double)MsPerX;
         tempsOuest[1] = qMax(_xSecondWestRidgePerY[0],_xSecondWestRidgePerY[ymax-ymin])-xmin+1;
-        oParamCrete[4][Dur] = (float)tempsOuest[1]*(float)MsPerX;
+        oParamCrete[4][Dur] = (double)tempsOuest[1]*(double)MsPerX;
         int fmin=_yEmaxPerX[icri][0],fmax=fmin;
         for(int k=1;k<=xmax-xmin;k++)
         {
@@ -1582,14 +1479,14 @@ void DetecTreatment::detectsParameter2()
                 if(_yEmaxPerX[icri][k]<fmin) fmin=_yEmaxPerX[icri][k];
             }
         }
-        oParamCrete[0][Fmax]=(float)fmax*(float)KhzPerY;
-        oParamCrete[0][Fmin]=(float)fmin*(float)KhzPerY;
+        oParamCrete[0][Fmax]=(double)fmax*(double)KhzPerY;
+        oParamCrete[0][Fmin]=(double)fmin*(double)KhzPerY;
         oParamCrete[0][BW]=oParamCrete[0][Fmax]-oParamCrete[0][Fmin];
         quint16 *pc; 
         int alasuite,meilleuresuite,meilleur;
-        float meilleurepente;
+        double meilleurepente;
         int xmcmax[NCRETES],ymcmax[NCRETES];
-        float amp[10],ampmoy[10],ran[10],ranmoy[10];
+        double amp[10],ampmoy[10],ran[10],ranmoy[10];
         int num[10],denom[10];
         num[0]=1; denom[0]=1;
         num[1]=2; denom[1]=1;
@@ -1599,17 +1496,17 @@ void DetecTreatment::detectsParameter2()
         num[5]=4; denom[5]=3;
         num[6]=2; denom[6]=3;
         int np,y,xn,nn,yn;
-        amp[0]=0.0f;
+        amp[0]=0.0d;
 
         for(int x=xmin;x<=xmax;x++) amp[0]+=_tabX[icri][x-xmin];
-        ampmoy[0]=amp[0]/((float)tailleforme);
+        ampmoy[0]=amp[0]/((double)tailleforme);
         for(int ih=1;ih<=6;ih++)
         {
-            amp[ih]=0.0f;
-            ampmoy[ih]=0.0f;
+            amp[ih]=0.0d;
+            ampmoy[ih]=0.0d;
             np=0;
-            ran[ih]=0.0f;
-            ranmoy[ih]=0.0f;
+            ran[ih]=0.0d;
+            ranmoy[ih]=0.0d;
             nn=0;
             for(int j=ymin;j<=ymax;j++)
             {
@@ -1617,9 +1514,10 @@ void DetecTreatment::detectsParameter2()
                 if(y>_maxY || y<1) continue;
                 for(int x=_xMinPerY[j-ymin];x<=_xMaxPerY[j-ymin];x++)
                 {
-                    if(_tabYX[j-ymin][x-xmin]>0.0f)
+                    //if(_tabYX[j-ymin][x-xmin]>0.0d)
+                    if(_tabYX[j-ymin][x-xmin]>epsilon)
                     {
-                        amp[ih] += (float)SonogramArray[y][x];
+                        amp[ih] += (double)SonogramArray[y][x];
                         np++;
                     }
                 }
@@ -1629,7 +1527,7 @@ void DetecTreatment::detectsParameter2()
                     else xn=_xMaxPerY[j-ymin]+k;
                     if(xn>=0 && xn<SonogramWidth)
                     {
-                        ran[ih] += (float)SonogramArray[y][xn];
+                        ran[ih] += (double)SonogramArray[y][xn];
                         nn++;
                     }
                 }
@@ -1644,16 +1542,16 @@ void DetecTreatment::detectsParameter2()
                         else yn=((_yMaxPerX[x-xmin]*num[ih])/denom[ih])+k;
                         if(yn<=_maxY && yn>0)
                         {
-                            ran[ih] += (float)SonogramArray[yn][x];
+                            ran[ih] += (double)SonogramArray[yn][x];
                             nn++;
                         }
                     }
                 }
             }
-            if(np>0) ampmoy[ih]=amp[ih]/((float)np*100.0f);
-            if(nn>0) ranmoy[ih]=ran[ih]/((float)nn*100.0f);
+            if(np>0) ampmoy[ih]=amp[ih]/((double)np*100.0d);
+            if(nn>0) ranmoy[ih]=ran[ih]/((double)nn*100.0d);
         } 
-        if(ampmoy[0]>0.0f)
+        if(ampmoy[0]>0.0d)
         {
             oParam[Ramp_2_1] = ampmoy[1]/ampmoy[0];
             oParam[Ramp_3_1] = ampmoy[2]/ampmoy[0];
@@ -1686,14 +1584,14 @@ void DetecTreatment::detectsParameter2()
         int xmaitr = MasterPoints.at(icri).x();
         int ymaitr = MasterPoints.at(icri).y();
         int npar,ntr,nen,xdeb,xfin,ydeb,yfin;
-        float e1,e2,e3;
+        double e1,e2,e3;
         for(int r=0;r<2;r++)
         {
             if(r==0) npar = HetX; else npar = HetXr;
             oParam[npar] = 0.0f;
             ntr = 0;
             nen = 0;
-            float e1,e2,e3;
+            double e1,e2,e3;
             if(r==0)
             {
                 ydeb=ymin;
@@ -1711,27 +1609,28 @@ void DetecTreatment::detectsParameter2()
                 for(int x=_xMinPerY[y-ymin];x<=_xMaxPerY[y-ymin];x++)
                 {
                     e2=_tabYX[y-ymin][x-xmin];
-                    if(e2>0.0f && x>0 && x<SonogramWidth-1)
+                    // if(e2>0.0f && x>0 && x<SonogramWidth-1)
+                    if(e2>epsilon && x>0 && x<SonogramWidth-1)
                     {
                         ntr++;
-                        e1 = (float)SonogramArray[y][x-1]/100.0f;
-                        e3 = (float)SonogramArray[y][x+1]/100.0f;
-                        if((e2>e1 && e2>e3) || (e2<e1 && e2<e3)) nen++;
+                        e1 = (double)SonogramArray[y][x-1]/100.0d;
+                        e3 = (double)SonogramArray[y][x+1]/100.0d;
+                        if((e2>(e1+epsilon) && e2>(e3+epsilon)) || ((e2+epsilon)<e1 && (e2+epsilon)<e3)) nen++;
                     }
                 }
             }
-            if(ntr>0) oParam[npar] = ((float) nen)/ ((float) ntr);
+            if(ntr>0) oParam[npar] = ((double) nen)/ ((double) ntr);
         }
         for(int r=0;r<3;r++)
         {
-            float dift = 0.0f;
+            double dift = 0.0d;
             if(r==0) npar = HetY;
             else
             {
                 if(r==1) npar = HetYr;
                 else npar = HetYr2;
             }
-            oParam[npar] = 0.0f;
+            oParam[npar] = 0.0d;
             ntr=0;
             nen=0;
             if(r==0 || r==2)
@@ -1765,21 +1664,22 @@ void DetecTreatment::detectsParameter2()
                     for(int y=ydeb;y<=yfin;y++)
                     {
                         e2=_tabYX[y-ymin][x-xmin];
-                        if(e2>0.0f && y>1 && y<_maxY)
+                        //if(e2>0.0f && y>1 && y<_maxY)
+                        if(e2>epsilon && y>1 && y<_maxY)
                         {
                             ntr++;
-                            e1=(float)SonogramArray[y-1][x]/100.0f;
-                            e3=(float)SonogramArray[y+1][x]/100.0f;
+                            e1=(double)SonogramArray[y-1][x]/100.0d;
+                            e3=(double)SonogramArray[y+1][x]/100.0d;
                             dift+=qAbs(e3-e2);
-                            if((e2>e1 && e2>e3) || (e2<e1 && e2<e3)) nen++;
+                            if((e2>(e1+epsilon) && e2>(e3+epsilon)) || ((e2+epsilon)<e1 && (e2+epsilon)<e3)) nen++;
                         }
                     }
                 }
             }
             if(ntr>0)
             {
-                if(npar<2) oParam[npar] = ((float) nen)/ ((float) ntr);
-                else oParam[npar] = (float)dift/(float)ntr;
+                if(npar<2) oParam[npar] = ((double) nen)/ ((double) ntr);
+                else oParam[npar] = (double)dift/(double)ntr;
             }
         }
         oParam[HetCMC] = 0.0f;
@@ -1796,31 +1696,30 @@ void DetecTreatment::detectsParameter2()
         int nbpics[2];
         int modepc;
         int memopr;
-        float seuilpc[2];
-        seuilpc[0] = 1.0f; seuilpc[1] = 10.0f;
-        float valpr,difppr;
+        double seuilpc[2];
+        seuilpc[0] = 1.0d; seuilpc[1] = 10.0d;
+        double valpr,difppr;
         for(int mt=0;mt<2;mt++)
         {
             int sensd=1,dersensd = 0;
             int nch=0,ncc=0;
-            float moytot= 0.0f,dermoytot = 0.0f;
-            float difC=0.0f,totDifC=0.0f,derDifC=0.0f;
+            double moytot= 0.0d,dermoytot = 0.0d;
+            double difC=0.0d,totDifC=0.0d,derDifC=0.0d;
             nbpics[mt]=0;
             modepc=0;
             memopr=0;
-            valpr=0.0f;
+            valpr=0.0d;
             for(int x=xmin;x<=xmax;x++)
             {
                 if(_numberPixelsPerX[x-xmin]>0)
-                {
-                    if(mt==0) moytot = _averagePerX[x-xmin]; else moytot= _tabX[icri][x-xmin];
+                {                    if(mt==0) moytot = _averagePerX[x-xmin]; else moytot= _tabX[icri][x-xmin];
                     if(x==xmin) valpr = moytot;
                 }
-                else moytot = 0.0f;
+                else moytot = 0.0d;
                 difppr=moytot-valpr;
-                if(difppr>0)
+                if(difppr>epsilon)
                 {
-                    if(difppr>=seuilpc[mt])
+                    if(difppr>=(seuilpc[mt]-epsilon))
                     {
                         if(modepc==0 || modepc==2)
                         {
@@ -1836,13 +1735,14 @@ void DetecTreatment::detectsParameter2()
                 }
                 else
                 {
-                    if(difppr<0)
+                    if(difppr<-epsilon)
                     {
-                        if(qAbs(difppr)>=seuilpc[mt])
+                        if(qAbs(difppr)>=(seuilpc[mt]-epsilon))
                         {
                             if(modepc==0 || modepc==1)
                             {
                                 pics[mt][nbpics[mt]++]=memopr;
+
                                 modepc=2;
                             }
                             memopr=x-xmin; valpr=moytot;
@@ -1855,15 +1755,19 @@ void DetecTreatment::detectsParameter2()
                 }
                 if(x==xmax)
                 {
-                    if(modepc==1) pics[mt][nbpics[mt]++] = memopr;
+                    if(modepc==1)
+                    {
+                        pics[mt][nbpics[mt]++] = memopr;
+                    }
                 }
                 difC = moytot - dermoytot;
-                if(difC>0.0f) sensd = 1;
+                if(difC>epsilon) sensd = 1;
                 else
                 {
-                    if(difC < 0.0f) sensd = 0;
+                    if(difC < -epsilon) sensd = 0;
                 }
-                if(difC!=0 || derDifC!=0) ncc++;
+                //if(difC!=0 || derDifC!=0) ncc++;
+                if(qAbs(difC)>epsilon || qAbs(derDifC)>epsilon) ncc++;
                 if(sensd != dersensd) nch++;
                 totDifC+=qAbs(difC);
                 dermoytot = moytot;
@@ -1874,37 +1778,41 @@ void DetecTreatment::detectsParameter2()
             {
                 if(mt==0)
                 {
-                    oParam[HetCMC] = ((float) nch)/ ((float) ncc);
+                    oParam[HetCMC] = ((double) nch)/ ((double) ncc);
 
-                    oParam[HetCMD] = (totDifC)/ ((float) ncc);
+                    oParam[HetCMD] = (totDifC)/ ((double) ncc);
                 }
                 else
                 {
-                    oParam[HetCTC] = ((float) nch)/ ((float) ncc);
+                    oParam[HetCTC] = ((double) nch)/ ((double) ncc);
 
-                    oParam[HetCTD] = (totDifC)/ ((float) ncc);
+                    oParam[HetCTD] = (totDifC)/ ((double) ncc);
                 }
 
             }
         }
         oParam[HetCMnP] = nbpics[0];
-        oParam[HetCMfP] = (float)nbpics[0]/((xmax-xmin+1)*MsPerX);
+        oParam[HetCMfP] = (double)nbpics[0]/((xmax-xmin+1)*MsPerX);
         oParam[HetCTnP] = nbpics[1];
-        oParam[HetCTfP] = (float)nbpics[1]/((xmax-xmin+1)*MsPerX);
-        float interc[MAXLARCRI/2];
-        float variationPicsInter[MAXLARCRI/2];
+        oParam[HetCTfP] = (double)nbpics[1]/((xmax-xmin+1)*MsPerX);
+        double interc[MAXLARCRI/2];
+        double variationPicsInter[MAXLARCRI/2];
+
         for(int mt=0;mt<2;mt++)
         {
-            float medianPicsDistance = ((float)(xmax-xmin+2)/2)*MsPerX;
-            float medianPicsLittleDistance =((float)(xmax-xmin+2)/2)*MsPerX;
-            float medianPicsBigDistance = ((float)(xmax-xmin+2)/2)*MsPerX;
+            double medianPicsDistance = ((double)(xmax-xmin+2)/2)*MsPerX;
+            double medianPicsLittleDistance =((double)(xmax-xmin+2)/2)*MsPerX;
+            double medianPicsBigDistance = ((double)(xmax-xmin+2)/2)*MsPerX;
             int nbi = nbpics[mt]-1;
             int halfnbi = nbi/2;
             int quartnbi =halfnbi/2;
             if(nbi>1)
             {
-                for(int j=0;j<nbi;j++) interc[j] = (qAbs((pics[mt][j+1]-pics[mt][j])))*MsPerX;
-                sortFloatArray(interc,nbi);
+                for(int j=0;j<nbi;j++)
+                {
+                    interc[j] = (qAbs((pics[mt][j+1]-pics[mt][j])))*MsPerX;
+                }
+                sortDoubleArray(interc,nbi);
                 if(halfnbi*2<nbi) medianPicsDistance = interc[halfnbi];
                 else medianPicsDistance= (interc[halfnbi-1] + interc[halfnbi])/2;
                 if(nbi<4)
@@ -1940,19 +1848,36 @@ void DetecTreatment::detectsParameter2()
                 _paramsArray[icri][SH][HetPicsTABD]  = medianPicsBigDistance;
                 _paramsArray[icri][SH][HetPicsTRBLD] = medianPicsBigDistance / medianPicsLittleDistance;
             }
-            float medianPicsDistanceVariation = 0;
+            double medianPicsDistanceVariation = 0;
+            if(nbi==1)
+            {
+
+
+            }
             for(int j=0;j<nbi;j++) variationPicsInter[j] = qAbs(interc[j]-medianPicsDistance);
-            float medianPicsLittleDistanceVariation = variationPicsInter[0];
-            float medianPicsBigDistanceVariation = variationPicsInter[nbi-1];
+
+            double medianPicsLittleDistanceVariation = 0.0d;
+            double medianPicsBigDistanceVariation = 0.0d;
             if(nbi>1)
             {
-                sortFloatArray(variationPicsInter,nbi);
+                medianPicsLittleDistanceVariation = variationPicsInter[0];
+                medianPicsBigDistanceVariation = variationPicsInter[nbi-1];
+            }
+            if(nbi>1)
+            {
+                sortDoubleArray(variationPicsInter,nbi);
                 if(halfnbi*2<nbi) medianPicsDistanceVariation = variationPicsInter[halfnbi];
                 else medianPicsDistanceVariation = (variationPicsInter[halfnbi-1] + variationPicsInter[halfnbi])/2;
                 for(int j=0;j<nbi;j++)
                 {
-                    if(j<halfnbi) variationPicsInter[j] = qAbs(interc[j]-medianPicsLittleDistance);
-                    else variationPicsInter[j] = qAbs(interc[j]-medianPicsBigDistance);
+                    if(j<halfnbi)
+                    {
+                        variationPicsInter[j] = qAbs(interc[j]-medianPicsLittleDistance);
+                    }
+                    else
+                    {
+                        variationPicsInter[j] = qAbs(interc[j]-medianPicsBigDistance);
+                    }
                 }
                 if(nbi<4)
                 {
@@ -1961,8 +1886,8 @@ void DetecTreatment::detectsParameter2()
                 }
                 else
                 {
-                    sortFloatArray(variationPicsInter,halfnbi);
-                    sortFloatArray(variationPicsInter+nbi-halfnbi,halfnbi);
+                    sortDoubleArray(variationPicsInter,halfnbi);
+                    sortDoubleArray(variationPicsInter+nbi-halfnbi,halfnbi);
                     if(quartnbi*2<halfnbi)
                     {
                         medianPicsLittleDistanceVariation = variationPicsInter[quartnbi];
@@ -1997,7 +1922,7 @@ void DetecTreatment::detectsParameter2()
         // -----------------------------------------------------------------------------------
         //if(_detec->IDebug) _detec->_logText << "-8" << endl ;  //+++
         oParam[Dbl8] = 0.0f;
-        float e8 = 0.0f;
+        double e8 = 0.0d;
         int n8 = 0;
         int Y8 = (int)(_freqCallMin / KhzPerY);
         for(int y=0;y<Y8;y++)
@@ -2005,20 +1930,20 @@ void DetecTreatment::detectsParameter2()
             qint16 *fc=SonogramArray[y];
             for(int x=xmin;x<=xmax;x++)
             {
-                e8 =+ (float)(*fc++);
+                e8 =+ (double)(*fc++);
                 n8++;
             }
         }
-        if(n8>0) oParam[Dbl8] = eMoy - (e8/((float)n8*100.0f));
+        if(n8>0) oParam[Dbl8] = eMoy - (e8/((double)n8*100.0d));
         oParam[Stab] = 0.0f;
-        float dif,p;
-        float ponderTot = 0.0f;
-        float difTot = 0.0f;
-        float dxmax = ((float)qMax(xmaitr-xmin,xmax-xmaitr))*MsPerX;
-        float dymax = ((float)qMax(ymaitr-ymin,ymax-ymaitr))*KhzPerY;
-        float distLim = pow(dxmax,2)+pow(dymax,2);
+        double dif,p;
+        double ponderTot = 0.0d;
+        double difTot = 0.0d;
+        double dxmax = ((double)qMax(xmaitr-xmin,xmax-xmaitr))*MsPerX;
+        double dymax = ((double)qMax(ymaitr-ymin,ymax-ymaitr))*KhzPerY;
+        double distLim = pow(dxmax,2)+pow(dymax,2);
         //
-        if(distLim>0.0f)
+        if(distLim>epsilon)
         {
             for(int y=ymin;y<=ymax;y++)
             {
@@ -2026,9 +1951,9 @@ void DetecTreatment::detectsParameter2()
                 {
                     if(x>=0 && x<SonogramWidth-1)
                     {
-                        dif = (float)(qAbs(SonogramArray[y][x+1]-SonogramArray[y][x]));
-                        p = 1.0f - (((    pow(   ((float)(x-xmaitr))*MsPerX , 2)
-                                          +pow(   ((float)(y-ymaitr))*KhzPerY,2))/distLim) * 0.75f);
+                        dif = (double)(qAbs(SonogramArray[y][x+1]-SonogramArray[y][x]));
+                        p = 1.0d - (((    pow(   ((double)(x-xmaitr))*MsPerX , 2)
+                                          +pow(   ((double)(y-ymaitr))*KhzPerY,2))/distLim) * 0.75f);
                         difTot += dif * p;
                         ponderTot += p;
                     }
@@ -2042,16 +1967,16 @@ void DetecTreatment::detectsParameter2()
                     {
                         if(y>=_minY && y<_maxY-1)
                         {
-                            dif = (float)(qAbs(SonogramArray[y+1][x]-SonogramArray[y][x]));
-                            p = 1.0f - (((    pow(   ((float)(x-xmaitr))*MsPerX , 2)
-                                              +pow(   ((float)(y-ymaitr))*KhzPerY,2))/distLim) * 0.75f);
+                            dif = (double)(qAbs(SonogramArray[y+1][x]-SonogramArray[y][x]));
+                            p = 1.0d - (((    pow(   ((double)(x-xmaitr))*MsPerX , 2)
+                                              +pow(   ((double)(y-ymaitr))*KhzPerY,2))/distLim) * 0.75f);
                             difTot += dif * p;
                             ponderTot += p;
                         }
                     }
                 }
             }
-            if(ponderTot!=0) oParam[Stab] = difTot / (ponderTot*100.0f);
+            if(ponderTot!=0) oParam[Stab] = difTot / (ponderTot*100.0d);
         }
         oParam[EnStabSm] = 0.0f;
         oParam[EnStabLg] = 0.0f;
@@ -2059,7 +1984,7 @@ void DetecTreatment::detectsParameter2()
         //
         for(int lbr=0;lbr<2;lbr++)
         {
-            difTot = 0.0f;
+            difTot = 0.0d;
             nbp=0;
             if(lbr==0) radius = 3; else radius = 10;
             ydeb = ymaitr-radius; yfin = ymaitr + radius;
@@ -2072,7 +1997,7 @@ void DetecTreatment::detectsParameter2()
             {
                 for(int x=xdeb;x<xfin;x++)
                 {
-                    difTot += (float)(qAbs(SonogramArray[y][x+1]-SonogramArray[y][x]));
+                    difTot += (double)(qAbs(SonogramArray[y][x+1]-SonogramArray[y][x]));
                     nbp++;
                 }
             }
@@ -2080,18 +2005,18 @@ void DetecTreatment::detectsParameter2()
             {
                 for(int y=ydeb;y<yfin;y++)
                 {
-                    difTot += (float)(qAbs(SonogramArray[y+1][x]-SonogramArray[y][x]));
+                    difTot += (double)(qAbs(SonogramArray[y+1][x]-SonogramArray[y][x]));
                     nbp++;
                 }
             }
             if(lbr==0) npar = EnStabSm; else npar = EnStabLg;
-            if(nbp>0) oParam[npar] = difTot/((float)nbp*100.0f);
+            if(nbp>0) oParam[npar] = difTot/((double)nbp*100.0d);
         }
-        float enerMaster[2];
-        enerMaster[0] = (float) _tabY[ymaitr-ymin];
-        enerMaster[1] = (float) _tabY[ymaitr-ymin]/_numberPixelsPerY[ymaitr-ymin];
+        double enerMaster[2];
+        enerMaster[0] = (double) _tabY[ymaitr-ymin];
+        enerMaster[1] = (double) _tabY[ymaitr-ymin]/_numberPixelsPerY[ymaitr-ymin];
         int enerHeight[2][2];
-        float enerY[2];
+        double enerY[2];
         int incr;
         for(int tm=0;tm<2;tm++)
         {
@@ -2101,19 +2026,19 @@ void DetecTreatment::detectsParameter2()
                 if(sens) incr = 1; else incr = -1;
                 for(int y=ymaitr+incr;y>=ymin && y<=ymax;y+=incr)
                 {
-                    if(tm==0) enerY[tm] = (float)_tabY[y-ymin];
-                    else enerY[tm] = (float) _tabY[y-ymin] / _numberPixelsPerY[y-ymin];
-                    if(enerY[tm] > enerMaster[tm] * 0.8f) enerHeight[tm][sens]++;
+                    if(tm==0) enerY[tm] = (double)_tabY[y-ymin];
+                    else enerY[tm] = (double) _tabY[y-ymin] / _numberPixelsPerY[y-ymin];
+                    if(enerY[tm] > (enerMaster[tm] * 0.8f + epsilon)) enerHeight[tm][sens]++;
                     else break;
                 }
             }
         }
-        oParam[HeiET] = (float) (enerHeight[0][0]+enerHeight[0][1]);
-        oParam[HeiEM] = (float) (enerHeight[1][0]+enerHeight[1][1]);
+        oParam[HeiET] = (double) (enerHeight[0][0]+enerHeight[0][1]);
+        oParam[HeiEM] = (double) (enerHeight[1][0]+enerHeight[1][1]);
         oParam[HeiRT] = oParam[HeiET]/(ymax - ymin+1);
         oParam[HeiRM] = oParam[HeiEM]/(ymax - ymin+1);
-        oParam[HeiETT] = (float) enerHeight[0][1];
-        oParam[HeiEMT] = (float) enerHeight[1][1];
+        oParam[HeiETT] = (double) enerHeight[0][1];
+        oParam[HeiEMT] = (double) enerHeight[1][1];
         oParam[HeiRTT] = oParam[HeiETT]/(ymax - ymin+1);
         oParam[HeiRMT] = oParam[HeiEMT]/(ymax - ymin+1);
         if(_imageData)
@@ -2125,8 +2050,8 @@ void DetecTreatment::detectsParameter2()
             _callSecondWestRidge.clear();
         }
         int lowfc,hifc,fc3;
-        float yCmax=0.0f;
-        float yCmin=9999.0f;
+        double yCmax=0.0d;
+        double yCmin=9999.0d;
         for(int jcrete=0;jcrete<NCRETES;jcrete++)
         {
             if(jcrete==0)  pc=_yEmaxPerX[icri];
@@ -2135,14 +2060,14 @@ void DetecTreatment::detectsParameter2()
             if(jcrete==3)  pc=_xMinPerY;
             if(jcrete==4)  pc=_xSecondWestRidgePerY;
             oParamCrete[jcrete][Slope] = 9999.0f;
-            float emcmax = -50.0f;
+            double emcmax = -50.0d;
             xmcmax[jcrete] = 0;
             ymcmax[jcrete]=0;
             if(jcrete<3)
             {
-                alasuite = 0; meilleuresuite = 0; meilleur = xmin; meilleurepente = 100000.0f;
-                yCmax=0.0f;
-                yCmin=9999.0f;
+                alasuite = 0; meilleuresuite = 0; meilleur = xmin; meilleurepente = 100000.0d;
+                yCmax=0.0d;
+                yCmin=9999.0d;
                 for(int x=xmin;x<=xmax;x++)
                 {
                     if(pc[x-xmin]>yCmax)  yCmax = pc[x-xmin];
@@ -2162,8 +2087,8 @@ void DetecTreatment::detectsParameter2()
                     _slope[x-xmin]=100000.0;
                     if(x>xmin+1 && x < xmax-1)
                         if(pc[x-xmin+2]>0 && pc[x-xmin-2]>0)
-                            _slope[x-xmin] = qAbs(((float)pc[x-xmin+2] - (float)pc[x-xmin-2])/4.0f);
-                    if(_slope[x-xmin]==0.0f)
+                            _slope[x-xmin] = qAbs(((double)pc[x-xmin+2] - (double)pc[x-xmin-2])/4.0d);
+                    if(_slope[x-xmin]==0.0d)
                     {
                         meilleurepente = 0;
                         alasuite++;
@@ -2173,14 +2098,14 @@ void DetecTreatment::detectsParameter2()
                     else
                     {
                         alasuite = 0;
-                        if(_slope[x-xmin] < meilleurepente)
+                        if(_slope[x-xmin] < (meilleurepente-epsilon))
                         {
                             meilleur = x;
                             meilleurepente = _slope[x-xmin];
                         }
                     }
-                    float e=(float)SonogramArray[pc[x-xmin]][x]/100.0f;
-                    if(e>emcmax)
+                    double e=(double)SonogramArray[pc[x-xmin]][x]/100.0d;
+                    if(e>(emcmax+epsilon))
                     {
                         emcmax = e;
                         xmcmax[jcrete]=x;
@@ -2190,7 +2115,7 @@ void DetecTreatment::detectsParameter2()
                 oParamCrete[jcrete][Fmax] = yCmax * KhzPerY;
                 oParamCrete[jcrete][Fmin]  = yCmin  * KhzPerY;
                 oParamCrete[jcrete][BW]  = oParamCrete[jcrete][Fmax]-oParamCrete[jcrete][Fmin];
-                if(xmax>xmin) oParamCrete[jcrete][Slope] = (float)(pc[xmax-xmin]-pc[0])*KhzPerY/((float)(xmax-xmin)*MsPerX);
+                if(xmax>xmin) oParamCrete[jcrete][Slope] = (double)(pc[xmax-xmin]-pc[0])*KhzPerY/((double)(xmax-xmin)*MsPerX);
                 if(meilleurepente ==0 && meilleuresuite>1)
                 {
                     int bonmeilleur = meilleur;
@@ -2202,8 +2127,8 @@ void DetecTreatment::detectsParameter2()
                 LowSlope[(icri*NCRETES+jcrete)*2] = meilleur; // (xmin+lowfc)
                 LowSlope[(icri*NCRETES+jcrete)*2+1] = pc[lowfc];
                 oParamCrete[jcrete][FIF]= pc[lowfc]*KhzPerY;
-                float pe1=0.0f,pe2=0.0f,dif;
-                float meilleuredist;
+                double pe1=0.0d,pe2=0.0d,dif;
+                double meilleuredist;
                 int meilleurk[2];
                 int debb,finb;
                 meilleurk[0]=0;
@@ -2211,27 +2136,27 @@ void DetecTreatment::detectsParameter2()
                 for(int jp=0;jp<2;jp++)
                 {
                     meilleurk[jp]=0;
-                    meilleuredist = 1000000.0f;
+                    meilleuredist = 1000000.0d;
                     if(jp==0) {debb=0;finb=lowfc;}
                     else {debb=lowfc;finb=xmax-xmin;}
                     if((jp==0 && lowfc > 1) || (jp==1 && lowfc < xmax - xmin-1))
                     {
                         for (int k = debb+1 ; k<= finb-1 ; k++)
                         {
-                            dif=0.0f;
+                            dif=0.0d;
                             if(pc[k]>0)
                             {
-                                pe1=(float)(pc[k]-pc[debb])/((float)k);
-                                pe2=((float)(pc[finb]-pc[k]))/((float)(lowfc-k));
+                                pe1=(double)(pc[k]-pc[debb])/((double)k);
+                                pe2=((double)(pc[finb]-pc[k]))/((double)(lowfc-k));
                             }
                             for(int s = debb+1 ; s<k ; s++)
                                 if(pc[s]>0)
-                                    dif+=(float)pow(pe1*((float)s)+(float)pc[debb]-(float)pc[s],2);
+                                    dif+=(double)pow(pe1*((double)s)+(double)pc[debb]-(double)pc[s],2);
 
                             for(int s = k+1 ; s<=finb-1 ; s++)
                                 if(pc[s]>0)
-                                    dif+=(float)pow(pe2*((float)(finb-s))+(float)pc[s]-(float)pc[finb],2);
-                            if(dif<meilleuredist)
+                                    dif+=(double)pow(pe2*((double)(finb-s))+(double)pc[s]-(double)pc[finb],2);
+                            if(dif<(meilleuredist-epsilon))
                             {
                                 meilleurk[jp]=k;
                                 meilleuredist=dif;
@@ -2245,22 +2170,23 @@ void DetecTreatment::detectsParameter2()
                 Inflexion1[(icri*NCRETES+jcrete)*2+1]=pc[hifc];
                 oParamCrete[jcrete][HCF] = pc[hifc]*KhzPerY;
                 oParamCrete[jcrete][THCF]  = 0.5f;
-                if(xmax-xmin>0) oParamCrete[jcrete][THCF] = ((float)meilleurk[0]+0.5f)/((float)(xmax-xmin+1));
+                if(xmax-xmin>0) oParamCrete[jcrete][THCF] = ((double)meilleurk[0]+0.5f)/((double)(xmax-xmin+1));
                 fc3=meilleurk[1];
                 Inflexion3[(icri*NCRETES+jcrete)*2]=fc3+xmin;
                 Inflexion3[(icri*NCRETES+jcrete)*2+1]=pc[fc3];
                 oParamCrete[jcrete][LCF] = pc[fc3]*KhzPerY;
+
                 oParamCrete[jcrete][UpSl] = 0.0f;
                 if(meilleurk[0]>0)
-                    oParamCrete[jcrete][UpSl] = ((float)(pc[meilleurk[0]]-pc[0])*KhzPerY)/((float)meilleurk[0]*MsPerX);
+                    oParamCrete[jcrete][UpSl] = ((double)(pc[meilleurk[0]]-pc[0])*KhzPerY)/((double)meilleurk[0]*MsPerX);
                 oParamCrete[jcrete][LoSl] = 0.0f;
                 if(lowfc-meilleurk[0]>0)
-                    oParamCrete[jcrete][LoSl] = ((float)(pc[lowfc]-pc[meilleurk[0]])*KhzPerY)/((float)(lowfc-meilleurk[0])*MsPerX);
+                    oParamCrete[jcrete][LoSl] = ((double)(pc[lowfc]-pc[meilleurk[0]])*KhzPerY)/((double)(lowfc-meilleurk[0])*MsPerX);
                 int debp,finp,ecart;
-                float pj[4];
+                double pj[4];
                 for(int j2=0;j2<4;j2++)
                 {
-                    pj[j2]=9999.0f;
+                    pj[j2]=9999.0d;
                     if(j2<2)
                     {
                         ecart=(xmax-xmin+10)/20;
@@ -2287,7 +2213,7 @@ void DetecTreatment::detectsParameter2()
                     }
                     if(ecart>0)
                     {
-                        pj[j2]=((float)(pc[finp]-pc[debp])*KhzPerY)/((float)ecart*MsPerX);
+                        pj[j2]=((double)(pc[finp]-pc[debp])*KhzPerY)/((double)ecart*MsPerX);
                     }
                 }
                 oParamCrete[jcrete][StSl] = pj[0];
@@ -2321,12 +2247,12 @@ void DetecTreatment::detectsParameter2()
                     oParamCrete[jcrete][SDCLRY_DNP]  = 0;
                     oParamCrete[jcrete][SDCLRXY_DNP]  = 0;
                     oParamCrete[jcrete][SDCLRXY2_DNP]  = 0;
-                    float derdif1=0.0f;
-                    float dif1,dif2;
-                    float totdif2 = 0.0f;
-                    float totdif2Op = 0.0f;
-                    float totdif2wb = 0.0f;
-                    float totdif2opwb = 0.0f;
+                    double derdif1=0.0d;
+                    double dif1,dif2;
+                    double totdif2 = 0.0d;
+                    double totdif2Op = 0.0d;
+                    double totdif2wb = 0.0d;
+                    double totdif2opwb = 0.0d;
                     // -----------------------------------------------------------------------------------------
                     bool findSdcl = false;
                     bool findSdclOp = false;
@@ -2343,62 +2269,67 @@ void DetecTreatment::detectsParameter2()
                         if(dif1 * derdif1 < 0) ncs++;
                         if(dif1>1 && !seenMasterPoint && !findSdclOp)
                         {
-                            totdif2Op = 0.0f;
-                            totdif2opwb = 0.0f;
+                            totdif2Op = 0.0d;
+                            totdif2opwb = 0.0d;
                             xdOp=x;
                         }
                         if((jcrete == (CS-1) || jcrete == (CM-1)) && (dif1>1 || x==xmax) && findSdcl==false)
                         {
                             prem = x;
                             oParamCrete[jcrete][SDCL]  = totdif2*KhzPerY;
-                            oParamCrete[jcrete][SDCLR]  = (   ((float)totdif2) * KhzPerY) / ( ((float)(x-xmin)+0.5f)*MsPerX);
+                            oParamCrete[jcrete][SDCLR]  = (   ((double)totdif2) * KhzPerY) / ( ((double)(x-xmin)+0.5f)*MsPerX);
                             oParamCrete[jcrete][SDCLWB]  = totdif2wb * KhzPerY;
-                            oParamCrete[jcrete][SDCLRWB]  = (((float)totdif2wb)*KhzPerY) / (((float)(x-xmin)+0.5f)*MsPerX);
+                            oParamCrete[jcrete][SDCLRWB]  = (((double)totdif2wb)*KhzPerY) / (((double)(x-xmin)+0.5f)*MsPerX);
                             if(qAbs(pc[x-xmin]-pc[0])>0)
                             {
-                                float ratioY = (totdif2*10.0f)/(float)(qAbs(pc[x-xmin]-pc[0]));
+                                double ratioY = (totdif2*10.0d)/(double)(qAbs(pc[x-xmin]-pc[0]));
                                 oParamCrete[jcrete][SDCLRY]  = ratioY/MsPerX;
-                                oParamCrete[jcrete][SDCLRXY]  = ratioY / ((float)(x-xmin)+0.5f);
-                                oParamCrete[jcrete][SDCLRXY2]  = ratioY / ((float)(x-xmin)+0.5f);
+                                oParamCrete[jcrete][SDCLRXY]  = ratioY / ((double)(x-xmin)+0.5f);
+                                oParamCrete[jcrete][SDCLRXY2]  = ratioY / ((double)(x-xmin)+0.5f);
                                 //
-                                float ratioYwb = (totdif2wb*10.0f)/(float)(qAbs(pc[x-xmin]-pc[0]));
+                                double ratioYwb = (totdif2wb*10.0d)/(double)(qAbs(pc[x-xmin]-pc[0]));
                                 oParamCrete[jcrete][SDCLRYWB]  = ratioYwb / MsPerX;
-                                oParamCrete[jcrete][SDCLRXYWB]  = ratioYwb / ((float)(x-xmin)+0.5f);
+                                oParamCrete[jcrete][SDCLRXYWB]  = ratioYwb / ((double)(x-xmin)+0.5f);
                             }
                             findSdcl = true;
                         }
                         if((jcrete == (CS-1) || jcrete == (CM-1)) && (dif1>1 || x==xmax) && findSdclOp==false && seenMasterPoint)
                         {
                             oParamCrete[jcrete][SDCLOP]  = totdif2Op*KhzPerY;
-                            oParamCrete[jcrete][SDCLROP]  = (((float)totdif2Op)*KhzPerY) / (((float)(x-xdOp)+0.5f)*MsPerX);
+                            oParamCrete[jcrete][SDCLROP]  = (((double)totdif2Op)*KhzPerY) / (((double)(x-xdOp)+0.5f)*MsPerX);
                             oParamCrete[jcrete][SDCLOPWB]  = totdif2opwb * KhzPerY;
-                            oParamCrete[jcrete][SDCLROPWB]  = (((float)totdif2opwb)*KhzPerY) / (((float)(x-xdOp)+0.5f)*MsPerX);
+                            oParamCrete[jcrete][SDCLROPWB]  = (((double)totdif2opwb)*KhzPerY) / (((double)(x-xdOp)+0.5f)*MsPerX);
                             if(qAbs(pc[x-xmin]-pc[xdOp-xmin])>0)
                             {
-                                float ratioYOp = (totdif2Op*100.0f)/(float)(qAbs(pc[x-xmin]-pc[xdOp-xmin]));
+                                double ratioYOp = (totdif2Op*100.0d)/(double)(qAbs(pc[x-xmin]-pc[xdOp-xmin]));
                                 oParamCrete[jcrete][SDCLRYOP]  = ratioYOp/MsPerX;
-                                oParamCrete[jcrete][SDCLRXYOP]  = ratioYOp / ((float)(x-xdOp)+0.5f);
-                                float ratioYopwb = (totdif2opwb*10.0f)/(float)(qAbs(pc[x-xmin]-pc[xdOp-xmin]));
+                                oParamCrete[jcrete][SDCLRXYOP]  = ratioYOp / ((double)(x-xdOp)+0.5f);
+                                double ratioYopwb = (totdif2opwb*10.0d)/(double)(qAbs(pc[x-xmin]-pc[xdOp-xmin]));
                                 oParamCrete[jcrete][SDCLRYOPWB]  = ratioYopwb/MsPerX;
-                                oParamCrete[jcrete][SDCLRXYOPWB]  = ratioYopwb / ((float)(x-xdOp)+0.5f);
+                                oParamCrete[jcrete][SDCLRXYOPWB]  = ratioYopwb / ((double)(x-xdOp)+0.5f);
                             }
                             findSdclOp = true;
                         }
                         dif2 = qAbs(dif1-derdif1);
                         if(firstdif2) {dif2 = 0; firstdif2=false;}
+
                         totdif2 += dif2;
+
                         totdif2Op += dif2;
                         if(x>=(xmin+xmaitr)/2) totdif2wb += dif2;
                         if(x>=(xdOp+xmaitr)/2) totdif2opwb += dif2;
                         derdif1 = dif1;
                     }
                     oParamCrete[jcrete][SDC]  = totdif2 * KhzPerY;
-                    oParamCrete[jcrete][SDCR]  = ((float)totdif2*KhzPerY) / (((float)(xmax-xmin)+0.5f)*MsPerX);
-                    float labs = qAbs(pc[xmax-xmin]-pc[0])+1;
-                    float ratioY = (float)totdif2*10.0f/labs;
+                    oParamCrete[jcrete][SDCR]  = ((double)totdif2*KhzPerY) / (((double)(xmax-xmin)+0.5f)*MsPerX);
+                    double labs = qAbs(pc[xmax-xmin]-pc[0])+1;
+
+                    double ratioY = (double)totdif2*10.0d/labs;
                     oParamCrete[jcrete][SDCRY]  = ratioY/MsPerX;
-                    oParamCrete[jcrete][SDCRXY]  = ratioY / ((float)(xmax-xmin)+0.5f);
-                    float fncs = (float) ncs/100.0f;
+
+
+                    oParamCrete[jcrete][SDCRXY]  = ratioY / ((double)(xmax-xmin)+0.5f);
+                    double fncs = (double) ncs/100.0d;
                     oParamCrete[jcrete][SDCL_DNP]  = oParamCrete[jcrete][SDCL]/fncs;
                     oParamCrete[jcrete][SDCLR_DNP]  = oParamCrete[jcrete][SDCLR]/fncs;
                     oParamCrete[jcrete][SDCLRY_DNP]  = oParamCrete[jcrete][SDCLRY]/fncs;
@@ -2421,18 +2352,18 @@ void DetecTreatment::detectsParameter2()
                             {
                                 if(y1!=y0)
                                 {
-                                    if ((((float)(y2-y1)) / ((float)(y1-y0))) < 0.6) unecond = true;
+                                    if ((((double)(y2-y1)) / ((double)(y1-y0))) < 0.6) unecond = true;
                                 }
                             }
                             if(unecond)
                             {
                                 if(prem>xmin)
                                 {
-                                    oParamCrete[jcrete][ELBPOS]  = ((float)(x-xmin))/((float)(prem-xmin));
+                                    oParamCrete[jcrete][ELBPOS]  = ((double)(x-xmin))/((double)(prem-xmin));
                                 }
                                 if(x>xmin)
                                 {
-                                    oParamCrete[jcrete][ELBSB]  = (   (  (float)(y1-pc[0])  ) *KhzPerY)     / ( ((float)(x-xmin))*MsPerX );
+                                    oParamCrete[jcrete][ELBSB]  = (   (  (double)(y1-pc[0])  ) *KhzPerY)     / ( ((double)(x-xmin))*MsPerX );
                                 }
                                 break;
                             }
@@ -2456,7 +2387,7 @@ void DetecTreatment::detectsParameter2()
                             }
                             else
                             {
-                                if(y1>yd) if  ( (((float)(y2-y1)) / ((float)(y1-yd))) < 0.6)
+                                if(y1>yd) if  ( (((double)(y2-y1)) / ((double)(y1-yd))) < 0.6)
                                 {
                                     unecond = true;
                                 }
@@ -2465,11 +2396,11 @@ void DetecTreatment::detectsParameter2()
                             {
                                 if(prem>xmin)
                                 {
-                                    oParamCrete[jcrete][ELB2POS]  = ((float)(x-xmin))/((float)(prem-xmin));
+                                    oParamCrete[jcrete][ELB2POS]  = ((double)(x-xmin))/((double)(prem-xmin));
                                 }
                                 if(x>xmin)
                                 {
-                                    oParamCrete[jcrete][ELB2SB]  = (  ( (float)(y1-pc[0]))*KhzPerY)      / ( ((float)(x-xmin))*MsPerX );
+                                    oParamCrete[jcrete][ELB2SB]  = (  ( (double)(y1-pc[0]))*KhzPerY)      / ( ((double)(x-xmin))*MsPerX );
                                 }
                                 break;
                             }
@@ -2495,22 +2426,22 @@ void DetecTreatment::detectsParameter2()
                         oParamCrete[jcrete][RAHE4]  = 0;
                         oParamCrete[jcrete][RAHE8]  = 0;
                         oParamCrete[jcrete][RAHE16]  = 0;
-                        float ratioF = 0.0f;
-                        float ratioE = 0.0f;
-                        float ratioFP = 0.0f;
-                        float ratioFP2 = 0.0f;
-                        float ratioFP3 = 0.0f;
-                        float totF[2],totE[2],np[2],totFP[2],totFP2[2],np2[2],totFP3[2],np3[2];
-                        float totE2[2],totE4[2],totE8[2],totE16[2];
+                        double ratioF = 0.0d;
+                        double ratioE = 0.0d;
+                        double ratioFP = 0.0d;
+                        double ratioFP2 = 0.0d;
+                        double ratioFP3 = 0.0d;
+                        double totF[2],totE[2],np[2],totFP[2],totFP2[2],np2[2],totFP3[2],np3[2];
+                        double totE2[2],totE4[2],totE8[2],totE16[2];
                         int hx2[2],hx4[2],hx8[2],hx16[2];
                         int nra2[2],nra4[2],nra8[2],nra16[2];
-                        float fc2,fc4,fc8,fc16;
+                        double fc2,fc4,fc8,fc16;
                         int avap2,avap4,avap8,avap16;
                         for(int j=0;j<2;j++)
                         {
-                            totF[j]=0.0f; totE[j]=0.0f; np[j]=0.0f; totFP[j]=0.0f;
-                            np2[j]=0.0f; totFP2[j]=0.0f;  np3[j]=0.0f; totFP3[j]=0.0f;
-                            totE2[j]=0.0f; totE4[j]=0.0f; totE8[j]=0.0f; totE16[j]=0.0f;
+                            totF[j]=0.0d; totE[j]=0.0d; np[j]=0.0d; totFP[j]=0.0d;
+                            np2[j]=0.0d; totFP2[j]=0.0d;  np3[j]=0.0d; totFP3[j]=0.0d;
+                            totE2[j]=0.0d; totE4[j]=0.0d; totE8[j]=0.0d; totE16[j]=0.0d;
                             hx2[j]=0; hx4[j]=0; hx8[j]=0; hx16[j]=0;
                             nra2[j]=0; nra4[j]=0; nra8[j]=0; nra16[j]=0;
                         }
@@ -2521,7 +2452,7 @@ void DetecTreatment::detectsParameter2()
                         bool alreadyRestarted = false;
                         for(int x=xmin;x<=xmax;x++)
                         {
-                            float e = SonogramArray[pc[x-xmin]][x];
+                            double e = SonogramArray[pc[x-xmin]][x];
                             if(pc[x-xmin]>0)
                             {
                                 bool condRestart = false;
@@ -2538,11 +2469,11 @@ void DetecTreatment::detectsParameter2()
                                     alreadyRestarted = true;
                                     for(int j=0;j<2;j++)
                                     {
-                                        totF[j]=0.0f; totE[j]=0.0f; np[j]=0.0f; totFP[j]=0.0f;
-                                        np2[j]=0.0f; totFP2[j]=0.0f;  np3[j]=0.0f; totFP3[j]=0.0f;
-                                        totF[j]=0.0f; totE[j]=0.0f; np[j]=0.0f; totFP[j]=0.0f;
-                                        np2[j]=0.0f; totFP2[j]=0.0f;  np3[j]=0.0f; totFP3[j]=0.0f;
-                                        totE2[j]=0.0f; totE4[j]=0.0f; totE8[j]=0.0f; totE16[j]=0.0f;
+                                        totF[j]=0.0d; totE[j]=0.0d; np[j]=0.0d; totFP[j]=0.0d;
+                                        np2[j]=0.0d; totFP2[j]=0.0d;  np3[j]=0.0d; totFP3[j]=0.0d;
+                                        totF[j]=0.0d; totE[j]=0.0d; np[j]=0.0d; totFP[j]=0.0d;
+                                        np2[j]=0.0d; totFP2[j]=0.0d;  np3[j]=0.0d; totFP3[j]=0.0d;
+                                        totE2[j]=0.0d; totE4[j]=0.0d; totE8[j]=0.0d; totE16[j]=0.0d;
                                         hx2[j]=0; hx4[j]=0; hx8[j]=0; hx16[j]=0;
                                         nra2[j]=0; nra4[j]=0; nra8[j]=0; nra16[j]=0;
                                     }
@@ -2550,7 +2481,7 @@ void DetecTreatment::detectsParameter2()
                                 }
                                 //
                                 if(x<=xmaitr) avap=0; else avap=1;
-                                totF[avap]+=(float)pc[x-xmin];
+                                totF[avap]+=(double)pc[x-xmin];
                                 totE[avap]+=e;
                                 totFP[avap]+= _yEbarPerX[x-xmin];
                                 totFP2[avap]+= _yEbarPerX[x-xmin]*_tabX[icri][x-xmin];
@@ -2567,28 +2498,28 @@ void DetecTreatment::detectsParameter2()
                                     if(((x-xdep)*8)<=(xmaitr-xdep)) avap8=0; else avap8=1;
                                     if(((x-xdep)*4)<=(xmaitr-xdep)) avap4=0; else avap4=1;
                                     if(((x-xdep)*2)<=(xmaitr-xdep)) avap2=0; else avap2=1;
-                                    fc2=1.0f; fc4=1.0f; fc8=1.0f; fc16=1.0f;
+                                    fc2=1.0d; fc4=1.0d; fc8=1.0d; fc16=1.0d;
                                     if(avap16==0)
                                     {
-                                        if(nra16[0]<3) fc16=4.0f-nra16[0];
+                                        if(nra16[0]<3) fc16=4.0d-nra16[0];
                                     }
                                     if(avap8==0)
                                     {
-                                        if(nra8[0]<4) fc8=5.0f-nra8[0];
+                                        if(nra8[0]<4) fc8=5.0d-nra8[0];
                                     }
                                     if(avap4==0)
                                     {
-                                        if(nra4[0]<6) fc4=7.0f-nra4[0];
+                                        if(nra4[0]<6) fc4=7.0d-nra4[0];
                                     }
                                     if(avap2==0)
                                     {
-                                        if(nra2[0]<9) fc2=10.0f-nra2[0];
+                                        if(nra2[0]<9) fc2=10.0d-nra2[0];
                                     }
 
                                     nra2[avap2]+=fc2; nra4[avap4]+=fc4; nra8[avap8]+=fc8; nra16[avap16]+=fc16;
-                                    float ecol = _tabX[icri][x-xmin];
+                                    double ecol = _tabX[icri][x-xmin];
                                     totE2[avap2]+=ecol*fc2; totE4[avap4]+=ecol*fc4; totE8[avap8]+=ecol*fc8; totE16[avap16]+=ecol*fc16;
-                                    float hpix = _numberPixelsPerX[x-xmin];
+                                    double hpix = _numberPixelsPerX[x-xmin];
                                     hx2[avap2]+=hpix*fc2; hx4[avap4]+=hpix*fc4; hx8[avap8]+=hpix*fc8; hx16[avap16]+=hpix*fc16;
                                 }
                                 //
@@ -2604,11 +2535,11 @@ void DetecTreatment::detectsParameter2()
                         }
                         if(np[0]>0 && np[1]>0)
                         {
-                            ratioF = (totF[0]*100.0f/np[0]) / (totF[1]/np[1]);
-                            ratioE = (totE[0]*100.0f/np[0]) / (totE[1]/np[1]);
-                            ratioFP = (totFP[0]*100.0f/np[0]) / (totFP[1]/np[1]);
-                            ratioFP2 = (totFP2[0]*10.0f/np2[0]) / (totFP2[1]/np2[1]);
-                            ratioFP3 = (totFP3[0]*100.0f/np3[0]) / (totFP3[1]/np3[1]);
+                            ratioF = (totF[0]*100.0d/np[0]) / (totF[1]/np[1]);
+                            ratioE = (totE[0]*100.0d/np[0]) / (totE[1]/np[1]);
+                            ratioFP = (totFP[0]*100.0d/np[0]) / (totFP[1]/np[1]);
+                            ratioFP2 = (totFP2[0]*10.0d/np2[0]) / (totFP2[1]/np2[1]);
+                            ratioFP3 = (totFP3[0]*100.0d/np3[0]) / (totFP3[1]/np3[1]);
                             oParamCrete[jcrete][RAF]  = ratioF;
                             oParamCrete[jcrete][RAE]  = ratioE;
                             oParamCrete[jcrete][RAFE]  = ratioF+ratioE;
@@ -2616,38 +2547,38 @@ void DetecTreatment::detectsParameter2()
                             oParamCrete[jcrete][RAFP2]  = ratioFP2*KhzPerY;
                             oParamCrete[jcrete][RAFP3]  = ratioFP3*KhzPerY;
                             if(xmaitr!=xdep)
-                            oParamCrete[jcrete][SBMP]  = ( ((float)  (pc[xmaitr-xmin] - pc[xdep-xmin] ))*KhzPerY)  / (((float)(xmaitr-xdep))*MsPerX);
+                            oParamCrete[jcrete][SBMP]  = ( ((double)  (pc[xmaitr-xmin] - pc[xdep-xmin] ))*KhzPerY)  / (((double)(xmaitr-xdep))*MsPerX);
                             if(xmaitr!=xfin)
-                            oParamCrete[jcrete][SAMP]  = ( ((float)  (pc[xfin-xmin] - pc[xmaitr-xmin]))*KhzPerY)   / (((float)(xfin-xmaitr))*MsPerX);
+                            oParamCrete[jcrete][SAMP]  = ( ((double)  (pc[xfin-xmin] - pc[xmaitr-xmin]))*KhzPerY)   / (((double)(xfin-xmaitr))*MsPerX);
                             oParamCrete[jcrete][SBAR]  = oParamCrete[jcrete][SAMP]  - oParamCrete[jcrete][SBMP];
                             if(nra2[0]>0 && nra2[1]>0 )
                             {
                                 if(hx2[1]>0)
-                                    oParamCrete[jcrete][RAHP2]  = ((((float)hx2[0]*10.0f)/((float)nra2[0]))  / (((float)hx2[1])/((float)nra2[1]))) * KhzPerY;
-                                if(totE2[1] >0)
-                                    oParamCrete[jcrete][RAHE2]  = (((totE2[0]*10.0f)/((float)nra2[0])) / ((totE2[1])/((float)nra2[1]))) * KhzPerY;
+                                    oParamCrete[jcrete][RAHP2]  = ((((double)hx2[0]*10.0d)/((double)nra2[0]))  / (((double)hx2[1])/((double)nra2[1]))) * KhzPerY;
+                                if(totE2[1] > epsilon)
+                                    oParamCrete[jcrete][RAHE2]  = (((totE2[0]*10.0d)/((double)nra2[0])) / ((totE2[1])/((double)nra2[1]))) * KhzPerY;
                             }
                             if(nra4[0]>0 && nra4[1]>0)
                             {
                                 if(hx4[1]>0)
-                                    oParamCrete[jcrete][RAHP4]     = ((((float)hx4[0]*10.0f)/((float)nra4[0])) / (((float)hx4[1])/((float)nra4[1])))*KhzPerY;
-                                if(totE4[1] >0)
-                                    oParamCrete[jcrete][RAHE4]  = (((totE4[0]*10.0f)/((float)nra4[0])) / ((totE4[1])/((float)nra4[1])))*KhzPerY;
+                                    oParamCrete[jcrete][RAHP4]     = ((((double)hx4[0]*10.0d)/((double)nra4[0])) / (((double)hx4[1])/((double)nra4[1])))*KhzPerY;
+                                if(totE4[1] > epsilon)
+                                    oParamCrete[jcrete][RAHE4]  = (((totE4[0]*10.0d)/((double)nra4[0])) / ((totE4[1])/((double)nra4[1])))*KhzPerY;
 
                             }
                             if(nra8[0]>0 && nra8[1]>0 && hx8[1]>0)
                             {
                                 if(hx8[1]>0)
-                                    oParamCrete[jcrete][RAHP8]  = ((((float)hx8[0]*10.0f)/((float)nra8[0])) / (((float)hx8[1])/((float)nra8[1])))*KhzPerY;
-                                if(totE8[1] >0)
-                                    oParamCrete[jcrete][RAHE8]  = (((totE8[0]*10.0f)/((float)nra8[0])) / (totE8[1]/((float)nra8[1])))*KhzPerY;
+                                    oParamCrete[jcrete][RAHP8]  = ((((double)hx8[0]*10.0d)/((double)nra8[0])) / (((double)hx8[1])/((double)nra8[1])))*KhzPerY;
+                                if(totE8[1] > epsilon)
+                                    oParamCrete[jcrete][RAHE8]  = (((totE8[0]*10.0d)/((double)nra8[0])) / (totE8[1]/((double)nra8[1])))*KhzPerY;
                             }
                             if(nra16[0]>0 && nra16[1]>0 && hx16[1]>0)
                             {
                                 if(hx16[1]>0)
-                                    oParamCrete[jcrete][RAHP16]  = ((((float)hx16[0]*10.0f)/((float)nra16[0])) / (((float)hx16[1])/((float)nra16[1])))*KhzPerY;
+                                    oParamCrete[jcrete][RAHP16]  = ((((double)hx16[0]*10.0d)/((double)nra16[0])) / (((double)hx16[1])/((double)nra16[1])))*KhzPerY;
                                 if(totE16[1] >0)
-                                    oParamCrete[jcrete][RAHE16]  = (((totE16[0]*10.0f)/((float)nra16[0])) / (totE16[1]/((float)nra16[1])))*KhzPerY;
+                                    oParamCrete[jcrete][RAHE16]  = (((totE16[0]*10.0d)/((double)nra16[0])) / (totE16[1]/((double)nra16[1])))*KhzPerY;
                             }
                         }
                     }
@@ -2660,7 +2591,7 @@ void DetecTreatment::detectsParameter2()
                         milieu=k;
                         break;
                     }
-                oParamCrete[jcrete][CeF] = (float)pc[milieu-xmin]*KhzPerY;
+                oParamCrete[jcrete][CeF] = (double)pc[milieu-xmin]*KhzPerY;
                 if(jcrete==0)
                 {
                     int pos1=xmcmax[jcrete];
@@ -2672,7 +2603,7 @@ void DetecTreatment::detectsParameter2()
                         {
                             if(pc[k-xmin]>0)
                             {
-                                if(SonogramArray[pc[k-xmin]][k]>borne)
+                                if(SonogramArray[pc[k-xmin]][k]>borne+epsilon)
                                 {
                                     pos1=k;
                                     break;
@@ -2686,7 +2617,7 @@ void DetecTreatment::detectsParameter2()
                         {
                             if(pc[k-xmin]>0)
                             {
-                                if(SonogramArray[pc[k-xmin]][k]<borne)
+                                if(SonogramArray[pc[k-xmin]][k]<(borne-epsilon))
                                 {
                                     pos2=k;
                                     break;
@@ -2702,7 +2633,7 @@ void DetecTreatment::detectsParameter2()
             }
             else
             {
-                meilleur = ymin; meilleurepente = 100000.0f;
+                meilleur = ymin; meilleurepente = 100000.0d;
                 int dx;
                 for(int y=ymin;y<=ymax;y++)
                 {
@@ -2722,17 +2653,17 @@ void DetecTreatment::detectsParameter2()
 
                             dx = qAbs(pc[y-ymin+2]>0 - pc[y-ymin-2]);
                             if(dx>0)
-                                _slope[y-ymin] = 4.0f/(float)dx;
+                                _slope[y-ymin] = 4.0d/(double)dx;
                         }
-                        if(_slope[y-ymin] < meilleurepente)
+                        if(_slope[y-ymin] < (meilleurepente-epsilon))
                         {
                             meilleur = y;
                             meilleurepente = _slope[y-ymin];
                         }
                     }
                     //
-                    float e = (float)SonogramArray[y][pc[y-ymin]]/100.0f;
-                    if(e>emcmax)
+                    double e = (double)SonogramArray[y][pc[y-ymin]]/100.0d;
+                    if(e>(emcmax+epsilon))
                     {
                         emcmax = e;
                         xmcmax[jcrete]=pc[y-ymin];
@@ -2742,30 +2673,31 @@ void DetecTreatment::detectsParameter2()
                 }
                 if(pc[ymax-ymin]!=pc[0])
                 {
-                    oParamCrete[jcrete][Slope] = ((float)(ymax-ymin)*KhzPerY)/((float)(pc[ymax-ymin]-pc[0])*MsPerX);
+                    oParamCrete[jcrete][Slope] = ((double)(ymax-ymin)*KhzPerY)/((double)(pc[ymax-ymin]-pc[0])*MsPerX);
                 }
                 else oParamCrete[jcrete][Slope] = 9999.0f;
                 if(ymin != ymax)
                 {
-                    oParamCrete[jcrete][ISlope] = ((float)(pc[ymax-ymin]-pc[0])*MsPerX) /  ((float)(ymax-ymin)*KhzPerY);
+                    oParamCrete[jcrete][ISlope] = ((double)(pc[ymax-ymin]-pc[0])*MsPerX) /  ((double)(ymax-ymin)*KhzPerY);
                 }
                 else oParamCrete[jcrete][ISlope] = 9999.0f;
                 lowfc = meilleur;
                 LowSlope[(icri*NCRETES+jcrete)*2]=pc[lowfc-ymin];
                 LowSlope[(icri*NCRETES+jcrete)*2+1]=lowfc;
                 oParamCrete[jcrete][FIF] = lowfc*KhzPerY;
-                float pe1,pe2,dif;
-                float meilleuredist;
+                double pe1,pe2,dif;
+                double meilleuredist;
                 int meilleurk[2];
                 int debb,finb;
                 meilleurk[0]=ymin;
+                bool adeb = _wavFile.contains("300711");
                 meilleurk[1]=lowfc;
                 int sens=1;
                 if(pc[ymax-ymin]>=pc[0]) sens=1;
                 else sens=-1;
                 for(int jp=0;jp<2;jp++)
                 {
-                    meilleuredist = 1000000.0f;
+                    meilleuredist = 1000000.0d;
                     if(jp==0)
                     {
                         if(sens==1) {debb=ymin;finb=lowfc;}
@@ -2780,41 +2712,49 @@ void DetecTreatment::detectsParameter2()
                     {
                         for (int k = debb+1 ; k<= finb-1 ; k++)
                         {
-                            dif=0.0f;
+                            dif=0.0d;
                             if(pc[k-ymin]>0)
                             {
                                 if(pc[k-ymin]-pc[debb-ymin] != 0)
-                                    pe1=(float)(k-debb)/((float)(pc[k-ymin]-pc[debb-ymin]));
+                                    pe1=(double)(k-debb)/((double)(pc[k-ymin]-pc[debb-ymin]));
                                 else pe1=100000;
                                 if(pc[finb-ymin]-pc[k-ymin] != 0)
-                                    pe2=((float)(finb-k))/((float)(pc[finb-ymin]-pc[k-ymin]));
+                                    pe2=((double)(finb-k))/((double)(pc[finb-ymin]-pc[k-ymin]));
                                 else pe2=100000;
-                            }
-                            for(int s = debb+1 ; s<k ; s++)
-                                if(pc[s-ymin]>0)
+                                for(int s = debb+1 ; s<k ; s++)
+                                    if(pc[s-ymin]>0)
+                                    {
+                                        if(pe1>99999)
+                                        {
+                                            dif +=(double)pow((double)(pc[s-ymin]-pc[debb-ymin]),2);
+
+                                        }
+                                        else
+                                        {
+                                            dif += (double)pow((double)(pc[s-ymin]-pc[debb-ymin])-(double)(s-debb)/pe1,2);
+                                        }
+                                    }
+
+                                for(int s = k+1 ; s<=finb-1 ; s++)
+                                    if(pc[s-ymin]>0)
+                                    {
+                                        if(pe2>99999)
+                                        {
+                                            dif +=(double)pow((double)(pc[s-ymin]-pc[finb-ymin]),2);
+                                        }
+                                        else
+                                        {
+                                            dif += (double)pow((double)(pc[s-ymin]-pc[k-ymin])-(double)(s-k)/pe2,2);
+                                        }
+                                    }
+
+                                if((double)epsilon<(meilleuredist-dif))
                                 {
-                                    if(pe1>99999)
-                                        dif +=(float)pow((float)(pc[s-ymin]-pc[debb-ymin]),2);
-                                    else
-                                        dif += (float)pow((float)(pc[s-ymin]-pc[debb-ymin])-(float)(s-debb)/pe1,2);
+                                    meilleurk[jp]=k;
+                                    meilleuredist=dif;
                                 }
-
-                            for(int s = k+1 ; s<=finb-1 ; s++)
-                                if(pc[s-ymin]>0)
-                                {
-                                    if(pe2>99999)
-                                        dif +=(float)pow((float)(pc[s-ymin]-pc[finb-ymin]),2);
-                                    else
-                                        dif += (float)pow((float)(pc[s-ymin]-pc[k-ymin])-(float)(s-k)/pe1,2);
-                                }
-
-
-
-                            if(dif<meilleuredist)
-                            {
-                                meilleurk[jp]=k;
-                                meilleuredist=dif;
                             }
+
                         }
 
                     }
@@ -2823,33 +2763,39 @@ void DetecTreatment::detectsParameter2()
                 Inflexion1[(icri*NCRETES+jcrete)*2]=pc[hifc-ymin];
                 Inflexion1[(icri*NCRETES+jcrete)*2+1]=hifc;
                 oParamCrete[jcrete][HCF] = hifc*KhzPerY;
+
                 oParamCrete[jcrete][THCF]  = 0.5f;
-                if(xmax-xmin>0) oParamCrete[jcrete][THCF] = ((float)(pc[meilleurk[0]-ymin]-xmin))/((float)(xmax-xmin));
+                if(xmax-xmin>0) oParamCrete[jcrete][THCF] = ((double)(pc[meilleurk[0]-ymin]-xmin))/((double)(xmax-xmin));
                 fc3=meilleurk[1];
                 Inflexion3[(icri*NCRETES+jcrete)*2]=pc[fc3-ymin];
                 Inflexion3[(icri*NCRETES+jcrete)*2+1]=fc3;
                 oParamCrete[jcrete][LCF] = fc3*KhzPerY;
+
+
                 oParamCrete[jcrete][UpSl] = 0.0f;
                 if((pc[meilleurk[0]-ymin]-pc[0]!=0 && sens==1)
                         || (pc[meilleurk[0]-ymin]-pc[ymax-ymin]!=0 && sens==-1))
                 {
                     if(sens==1)
-                        oParamCrete[jcrete][UpSl] = ((float)(meilleurk[0]-ymin)*KhzPerY)
-                                /( ( (float)(pc[meilleurk[0]-ymin]-pc[0]) ) * MsPerX);
+                        oParamCrete[jcrete][UpSl] = ((double)(meilleurk[0]-ymin)*KhzPerY)
+                                /( ( (double)(pc[meilleurk[0]-ymin]-pc[0]) ) * MsPerX);
                     else
-                        oParamCrete[jcrete][UpSl] = ((float)(meilleurk[0]-ymax)*KhzPerY)
-                                /( ( (float)(pc[meilleurk[0]-ymin]-pc[ymax-ymin]) ) * MsPerX);
+                        oParamCrete[jcrete][UpSl] = ((double)(meilleurk[0]-ymax)*KhzPerY)
+                                /( ( (double)(pc[meilleurk[0]-ymin]-pc[ymax-ymin]) ) * MsPerX);
 
                 }
+
+
                 oParamCrete[jcrete][LoSl] = 9999.0f;
                 if(pc[lowfc-ymin]-pc[meilleurk[0]-ymin]!=0)
-                    oParamCrete[jcrete][LoSl] = ((float)(lowfc-meilleurk[0])*KhzPerY)
-                            /( ( (float)(pc[lowfc-ymin]-pc[meilleurk[0]-ymin]) ) * MsPerX);
+                    oParamCrete[jcrete][LoSl] = ((double)(lowfc-meilleurk[0])*KhzPerY)
+                            /( ( (double)(pc[lowfc-ymin]-pc[meilleurk[0]-ymin]) ) * MsPerX);
+
                 int debp,finp,ecart;
-                float pj[4];
+                double pj[4];
                 for(int j2=0;j2<4;j2++)
                 {
-                    pj[j2]=9999.0f;
+                    pj[j2]=9999.0d;
                     if(j2<2)
                     {
                         ecart=(ymax-ymin+1)/20;
@@ -2872,10 +2818,10 @@ void DetecTreatment::detectsParameter2()
                         if(finp>ymax-ymin) finp = ymax-ymin;
                         ecart=finp-debp;
                     }
-                    float dx=(float)(pc[finp]-pc[debp]);
+                    double dx=(double)(pc[finp]-pc[debp]);
                     if(dx!=0)
                     {
-                        pj[j2]=((float)ecart*KhzPerY)/(dx*MsPerX);
+                        pj[j2]=((double)ecart*KhzPerY)/(dx*MsPerX);
                     }
                 }
                 oParamCrete[jcrete][StSl] = pj[0];
@@ -2898,8 +2844,8 @@ void DetecTreatment::detectsParameter2()
                         derdif1 = dif1;
                     }
                     oParamCrete[jcrete][SDC]  = totdif2*MsPerX;
-                    float labs = qAbs(pc[ymax-ymin]-pc[0])+1;
-                    oParamCrete[jcrete][SDCR]  = ((float)totdif2/labs)*(MsPerX/KhzPerY);
+                    double labs = qAbs(pc[ymax-ymin]-pc[0])+1;
+                    oParamCrete[jcrete][SDCR]  = ((double)totdif2/labs)*(MsPerX/KhzPerY);
                 }
                 if(jcrete==4)
                 {
@@ -2912,7 +2858,7 @@ void DetecTreatment::detectsParameter2()
                         {
                             if(pc[k-ymin]>0)
                             {
-                                if(SonogramArray[k][pc[k-ymin]]>borne)
+                                if(SonogramArray[k][pc[k-ymin]]>borne+epsilon)
                                 {
                                     pos1=k;
                                     break;
@@ -2926,7 +2872,7 @@ void DetecTreatment::detectsParameter2()
                         {
                             if(pc[k-ymin]>0)
                             {
-                                if(SonogramArray[k][pc[k-ymin]]<borne)
+                                if(SonogramArray[k][pc[k-ymin]]<(borne - epsilon))
                                 {
                                     pos2=k;
                                     break;
@@ -2946,16 +2892,16 @@ void DetecTreatment::detectsParameter2()
                     oParamCrete[jcrete][B5dBDur] = (pc[pos2-ymin]-pc[pos1-ymin])*MsPerX;
                 }
             }
-            oParamCrete[jcrete][FPk]=(float)ymcmax[jcrete]*(float)KhzPerY;
+            oParamCrete[jcrete][FPk]=(double)ymcmax[jcrete]*(double)KhzPerY;
             oParamCrete[jcrete][FPkD] = 0.0f;
             if(criprec<icri) oParamCrete[jcrete][FPkD] = oParamCrete[jcrete][FPk] - _paramsArray[criprec][jcrete+1][FPk];
             int intervTemps;
             if(jcrete<3) intervTemps = xmax-xmin+1;
             else intervTemps = tempsOuest[jcrete-3];
-            oParamCrete[jcrete][TPk] = (float)(xmcmax[jcrete]-xmin+0.5f)/(float)intervTemps;
+            oParamCrete[jcrete][TPk] = (double)(xmcmax[jcrete]-xmin+0.5f)/(double)intervTemps;
         } // end of crests loop 
-        oParamCrete[0][StF] = (float)_yEmaxPerX[icri][0]*KhzPerY;
-        oParamCrete[0][EnF] = (float)_yEmaxPerX[icri][xmax-xmin]*KhzPerY;
+        oParamCrete[0][StF] = (double)_yEmaxPerX[icri][0]*KhzPerY;
+        oParamCrete[0][EnF] = (double)_yEmaxPerX[icri][xmax-xmin]*KhzPerY;
         if(_imageData)
         {
             CallMasterRidgeArray.push_back(_callMasterRidge);
@@ -2977,29 +2923,42 @@ void DetecTreatment::detectsParameter2()
         oParam[Hlo_AmpDif] = 0.0f;
         oParam[Hlo_RSlope] = -9999.0f;
     }
-    //if(_detec->IDebug) _detec->_logText  << "-9" << endl ;
     for(int icri=0;icri<nbcris-1;icri++)
     {
-        float freqmp = _paramsArray[icri][SH][FreqMP];
+        double freqmp = _paramsArray[icri][SH][FreqMP];
         int pmp = _invMp[icri];
         if(pmp<nbcris-1)
         {
             _paramsArray[icri][SH][NextMP1] = (MasterPoints.at(_sortMp[pmp+1]).x()-MasterPoints.at(icri).x())*MsPerX;
             for(int k=pmp+1;k<nbcris;k++)
             {
-                if(_paramsArray[_sortMp[k]][SH][Fmin] < freqmp
-                        && _paramsArray[_sortMp[k]][SH][Fmax] > freqmp)
+                if(_paramsArray[_sortMp[k]][SH][Fmin] < (freqmp-epsilon)
+                        && _paramsArray[_sortMp[k]][SH][Fmax] > (freqmp+epsilon))
                 {
                     _paramsArray[icri][SH][NextMP2] = (MasterPoints.at(_sortMp[k]).x() -MasterPoints.at(icri).x())*MsPerX;
                     break;
                 }
             }
         }
+        if(pmp>0)
+        {
 
+            _paramsArray[icri][SH][PrevMP1]=(MasterPoints.at(icri).x()-MasterPoints.at(_sortMp[pmp-1]).x())*MsPerX;
+            for(int k=pmp-1;k>=0;k--)
+            {
+                if(_paramsArray[_sortMp[k]][SH][Fmin] < (freqmp-epsilon)
+                        && _paramsArray[_sortMp[k]][SH][Fmax] > (freqmp+epsilon))
+                {
+                    _paramsArray[icri][SH][PrevMP2] = (MasterPoints.at(icri).x()-MasterPoints.at(_sortMp[k]).x())*MsPerX;
+                    break;
+                }
+            }
+        }
     }
+    // --------------------------------------------------------------------
     for(int k=0;k<2;k++)
         for(int i=0;i<nbcris;i++)
-        {_harmonic[k][i] = -1; _dpm[k][i]=0.0f; _dypm[k][i]=0; _ypm[k][i]=0;}
+        {_harmonic[k][i] = -1; _dpm[k][i]=0.0d; _dypm[k][i]=0; _ypm[k][i]=0;}
 
     for(int i=0;i<nbcris;i++)
     {
@@ -3022,7 +2981,7 @@ void DetecTreatment::detectsParameter2()
                     int xmaitr2=MasterPoints.at(j).x();
                     if(xmaitr2>=xmin1 && xmaitr2<=xmax1)
                     {
-                        float dm =pow(xmaitr2-xmaitr1,2)+pow(ymaitr2-ymaitr1,2);
+                        double dm =pow(xmaitr2-xmaitr1,2)+pow(ymaitr2-ymaitr1,2);
                         if(_harmonic[k][i]<0 || dm<_dpm[k][i]
                                 || (dm==_dpm[k][i] && abs(ymaitr2-ymaitr1)<<_dypm[k][i])
                                 || (dm==_dpm[k][i] && abs(ymaitr2-ymaitr1)<<_dypm[k][i]
@@ -3047,30 +3006,33 @@ void DetecTreatment::detectsParameter2()
         nhsup=_harmonic[0][icri];
         if(nhsup>=0)
         {
-            if(_paramsArray[icri][SH][FreqMP] > 0.0f)
+            if(_paramsArray[icri][SH][FreqMP] > epsilon)
                 _paramsArray[icri][SH][Hup_RFMP] = _paramsArray[nhsup][SH][FreqMP]
                         /_paramsArray[icri][SH][FreqMP];
             int xmin1=_vectorXMin.at(icri);
             int xmin2=_vectorXMin.at(nhsup);
             int xmax1=_vectorXMax.at(icri);
             int xmax2=_vectorXMax.at(nhsup);
-            float larcri=(float)(xmax1-xmin1);
-            if(larcri>0.0f)
+            double larcri=(double)(xmax1-xmin1);
+            if(larcri>epsilon)
             {
-                _paramsArray[icri][SH][Hup_PosMP]=(float)(MasterPoints.at(nhsup).x()-xmin1)/larcri;
-                _paramsArray[icri][SH][Hup_PosSt]=(float)(xmin2-xmin1)/larcri;
-                _paramsArray[icri][SH][Hup_PosEn]=(float)(_vectorXMax.at(nhsup)-xmin1)/larcri;
+                _paramsArray[icri][SH][Hup_PosMP]=(double)(MasterPoints.at(nhsup).x()-xmin1)/larcri;
+                _paramsArray[icri][SH][Hup_PosSt]=(double)(xmin2-xmin1)/larcri;
+                _paramsArray[icri][SH][Hup_PosEn]=(double)(_vectorXMax.at(nhsup)-xmin1)/larcri;
             }
             int xdeb = qMax(xmin1,xmin2);
             int xfin = qMin(xmax1,xmax2);
-            float famp1=0.0f;
-            float famp2=0.0f;
+            double famp1=0.0d;
+            double famp2=0.0d;
             for(int i=xdeb;i<=xfin;i++)
             {
-                famp1+=_tabX[icri][i-xmin1];
-                famp2+=_tabX[nhsup][i-xmin2];
+                famp1+=(double)_tabX[icri][i-xmin1];
+                famp2+=(double)_tabX[nhsup][i-xmin2];
+                double alire = (double)_tabX[icri][i-xmin1];
             }
             _paramsArray[icri][SH][Hup_AmpDif] = (famp2 - famp1)*KhzPerY;
+
+
             int nouveauxdeb=xdeb;
             int nouveauxfin=xfin;
             for(int i=xdeb;i<=xfin;i++)
@@ -3087,37 +3049,37 @@ void DetecTreatment::detectsParameter2()
             xdeb=nouveauxdeb; xfin=nouveauxfin;
             if(xfin>xdeb)
             {
-                float CM_Slope1=((float)(_yEmaxPerX[icri][xfin-xmin1]
+                double CM_Slope1=((double)(_yEmaxPerX[icri][xfin-xmin1]
                                  -_yEmaxPerX[icri][xdeb-xmin1]))
-                        /((float)(xfin-xdeb));
-                float CM_Slope2=((float)(_yEmaxPerX[nhsup][xfin-xmin2]
+                        /((double)(xfin-xdeb));
+                double CM_Slope2=((double)(_yEmaxPerX[nhsup][xfin-xmin2]
                                  -_yEmaxPerX[nhsup][xdeb-xmin2]))
-                        /((float)(xfin-xdeb));
-                if(CM_Slope1!=0.0f)
+                        /((double)(xfin-xdeb));
+                if(CM_Slope1!=0.0d)
                     _paramsArray[icri][SH][Hup_RSlope] = CM_Slope2 / CM_Slope1;
             }
         }
         nhinf=_harmonic[1][icri];
         if(nhinf>=0)
         {
-            if(_paramsArray[icri][SH][FreqMP] > 0.0f)
+            if(_paramsArray[icri][SH][FreqMP] > epsilon)
                 _paramsArray[icri][SH][Hlo_RFMP] = _paramsArray[nhinf][SH][FreqMP]
                         /_paramsArray[icri][SH][FreqMP];
             int xmin1=_vectorXMin.at(icri);
             int xmax1=_vectorXMax.at(icri);
             int xmin2=_vectorXMin.at(nhinf);
             int xmax2=_vectorXMax.at(nhinf);
-            float larcri=(float)(xmax1-xmin1);
-            if(larcri>0.0f)
+            double larcri=(double)(xmax1-xmin1);
+            if(larcri>epsilon)
             {
-                _paramsArray[icri][SH][Hlo_PosMP]=(float)(MasterPoints.at(nhinf).x()-xmin1)/larcri;
-                _paramsArray[icri][SH][Hlo_PosSt]=(float)(xmin2-xmin1)/larcri;
-                _paramsArray[icri][SH][Hlo_PosEn]=(float)(xmax2-xmin1)/larcri;
+                _paramsArray[icri][SH][Hlo_PosMP]=(double)(MasterPoints.at(nhinf).x()-xmin1)/larcri;
+                _paramsArray[icri][SH][Hlo_PosSt]=(double)(xmin2-xmin1)/larcri;
+                _paramsArray[icri][SH][Hlo_PosEn]=(double)(xmax2-xmin1)/larcri;
             }
             int xdeb = qMax(xmin1,xmin2);
             int xfin = qMin(xmax1,xmax2);
-            float famp1=0.0f;
-            float famp2=0.0f;
+            double famp1=0.0d;
+            double famp2=0.0d;
             for(int i=xdeb;i<=xfin;i++)
             {
                 famp1+=_tabX[icri][i-xmin1];
@@ -3140,23 +3102,23 @@ void DetecTreatment::detectsParameter2()
             xdeb=nouveauxdeb; xfin=nouveauxfin;
             if(xfin>xdeb)
             {
-                float CM_Slope1=((float)(_yEmaxPerX[icri][xfin-xmin1]
+                double CM_Slope1=((double)(_yEmaxPerX[icri][xfin-xmin1]
                                  -_yEmaxPerX[icri][xdeb-xmin1]))
-                        /((float)(xfin-xdeb));
-                float CM_Slope2=((float)(_yEmaxPerX[nhinf][xfin-xmin2]
+                        /((double)(xfin-xdeb));
+                double CM_Slope2=((double)(_yEmaxPerX[nhinf][xfin-xmin2]
                                  -_yEmaxPerX[nhinf][xdeb-xmin2]))
-                        /((float)(xfin-xdeb));
-                if(CM_Slope1!=0.0f)
+                        /((double)(xfin-xdeb));
+                if(CM_Slope1!=0.0d)
                     _paramsArray[icri][SH][Hlo_RSlope] = CM_Slope2 / CM_Slope1;
             }
         }
     }
     //
     int nbb;
-    float tsono = SonogramWidth *  MsPerX;
-    float interv[MAXCRI];
-    float variation[MAXCRI];
-    float proxiFreq = 2.0f;
+    double tsono = SonogramWidth *  MsPerX;
+    double interv[MAXCRI];
+    double variation[MAXCRI];
+    double proxiFreq = 2.0d;
     int rband[MAXCRI]; //+
     bool alreadyTreated[MAXCRI];
     for(int i=0;i<nbcris;i++) alreadyTreated[i]=false;
@@ -3176,11 +3138,11 @@ void DetecTreatment::detectsParameter2()
             _paramsArray[icri][SH][VarSmInt] = 0.0f;
             _paramsArray[icri][SH][VarLgInt] = 0.0f;
             nbb=0;
-            float freqmp = _paramsArray[icri][SH][FreqMP];
+            double freqmp = _paramsArray[icri][SH][FreqMP];
             for(int k=0;k<nbcris;k++)
             {
-                float freqmp2 = _paramsArray[k][SH][FreqMP];
-                if(qAbs(freqmp2-freqmp) < proxiFreq) rband[nbb++]=k;
+                double freqmp2 = _paramsArray[k][SH][FreqMP];
+                if(qAbs(freqmp2-freqmp) < (proxiFreq-epsilon)) rband[nbb++]=k;
             }
             if(nbb>1)
             {
@@ -3188,9 +3150,9 @@ void DetecTreatment::detectsParameter2()
                 for(int j=0;j<nbb;j++)  rbandx[j] = MasterPoints.at(rband[j]).x();
                 sortIntArrays(rband,nbb,rbandx);
             }
-            float medianDistance = tsono/2;
-            float medianLittleDistance = tsono/2;
-            float medianBigDistance = tsono/2;
+            double medianDistance = tsono/2;
+            double medianLittleDistance = tsono/2;
+            double medianBigDistance = tsono/2;
             int nbi = nbb+1;
             int halfnbi = nbi/2;
             int quartnbi =halfnbi/2;
@@ -3202,7 +3164,7 @@ void DetecTreatment::detectsParameter2()
                 {
                     interv[j] = (MasterPoints.at(rband[j]).x()-MasterPoints.at(rband[j-1]).x()) * MsPerX;
                 }
-                sortFloatArray(interv,nbi);
+                sortDoubleArray(interv,nbi);
                 if(halfnbi*2<nbi) medianDistance = interv[halfnbi];
                 else medianDistance= (interv[halfnbi-1] + interv[halfnbi])/2;
                 if(nbi<4)
@@ -3228,17 +3190,17 @@ void DetecTreatment::detectsParameter2()
             _paramsArray[icri][SH][MedInt]   = medianDistance;
             _paramsArray[icri][SH][Int25]  = medianLittleDistance;
             _paramsArray[icri][SH][Int75]  = medianBigDistance;
-            if(medianLittleDistance>0.0f) _paramsArray[icri][SH][RInt1] = medianBigDistance / medianLittleDistance;
+            if(medianLittleDistance>epsilon) _paramsArray[icri][SH][RInt1] = medianBigDistance / medianLittleDistance;
             else _paramsArray[icri][SH][RInt1] = 9999;
             //
-            float medianDistanceVariation = 0;
+            double medianDistanceVariation = 0;
             // a) �cart m�dian
             for(int j=0;j<nbi;j++) variation[j] = qAbs(interv[j]-medianDistance);
-            float medianLittleDistanceVariation = variation[0];
-            float medianBigDistanceVariation = variation[nbi-1];
+            double medianLittleDistanceVariation = variation[0];
+            double medianBigDistanceVariation = variation[nbi-1];
             if(nbi>1)
             {
-                sortFloatArray(variation,nbi);
+                sortDoubleArray(variation,nbi);
                 if(halfnbi*2<nbi) medianDistanceVariation = variation[halfnbi];
                 else medianDistanceVariation = (variation[halfnbi-1] + variation[halfnbi])/2;
                 // b) �carts sur petits intervalles et sur grands intervalles
@@ -3254,8 +3216,8 @@ void DetecTreatment::detectsParameter2()
                 }
                 else
                 {
-                    sortFloatArray(variation,halfnbi);
-                    sortFloatArray(variation+nbi-halfnbi,halfnbi);
+                    sortDoubleArray(variation,halfnbi);
+                    sortDoubleArray(variation+nbi-halfnbi,halfnbi);
                     if(quartnbi*2<halfnbi)
                     {
                         medianLittleDistanceVariation = variation[quartnbi];
@@ -3272,7 +3234,7 @@ void DetecTreatment::detectsParameter2()
             _paramsArray[icri][SH][SmIntDev]  = medianLittleDistanceVariation;
             _paramsArray[icri][SH][LgIntDev]  = medianBigDistanceVariation;
             _paramsArray[icri][SH][VarInt]  = medianDistanceVariation/medianDistance;
-            if(medianLittleDistance>0.0f) _paramsArray[icri][SH][VarSmInt]  = medianLittleDistanceVariation/medianLittleDistance;
+            if(medianLittleDistance>epsilon) _paramsArray[icri][SH][VarSmInt]  = medianLittleDistanceVariation/medianLittleDistance;
             _paramsArray[icri][SH][VarLgInt]  = medianBigDistanceVariation/medianBigDistance;
             if(medianLittleDistanceVariation==0) _paramsArray[icri][SH][RIntDev1] = 0.0f;
             else _paramsArray[icri][SH][RIntDev1] = medianBigDistanceVariation / medianLittleDistanceVariation;
@@ -3301,9 +3263,10 @@ void DetecTreatment::detectsParameter2()
 }
 
 // methods used to sort arrays of numbers for computing of settings
-void DetecTreatment::sortFloatArray(float *pf,int nbf)
+void DetecTreatment::sortDoubleArray(double *pf,int nbf)
 {
-    float conserv;
+    double conserv;
+    double epsilon = 0.00001d;
     bool ontrie = true;
     while(ontrie)
     {
@@ -3311,7 +3274,7 @@ void DetecTreatment::sortFloatArray(float *pf,int nbf)
         for(int j=0;j<nbf-1;j++)
         {
             bool permuter = false;
-            if(pf[j]>pf[j+1]) permuter = true;
+            if(pf[j]>(pf[j+1]+epsilon)) permuter = true;
             if(permuter)
             {
                 conserv = pf[j];
@@ -3325,6 +3288,7 @@ void DetecTreatment::sortFloatArray(float *pf,int nbf)
 
 void DetecTreatment::SortFloatIndArray(float *pf,int nbf,int *pos)
 {
+    float epsilon = 0.00001f;
     float conserv;
     int cpos;
     bool ontrie = true;
@@ -3335,7 +3299,7 @@ void DetecTreatment::SortFloatIndArray(float *pf,int nbf,int *pos)
         for(int j=0;j<nbf-1;j++)
         {
             bool permuter = false;
-            if(pf[j]>pf[j+1]) permuter = true;
+            if(pf[j]>(pf[j+1]+epsilon)) permuter = true;
             if(permuter)
             {
                 conserv = pf[j];
@@ -3378,6 +3342,7 @@ void DetecTreatment::sortIntArrays(int *pf,int nbf,int *pf2)
 // this method saves the computed settings in the ".ta" file
 void DetecTreatment::saveParameters(const QString& wavFile)
 {
+    double epsilon = 0.0001d;
     QString txtFilePath = _txtPath+"/"+wavFile.left(wavFile.length()-3)+ _resultSuffix;
     QFile txtFile;
     txtFile.setFileName(txtFilePath);
@@ -3396,8 +3361,8 @@ void DetecTreatment::saveParameters(const QString& wavFile)
         if(VectPar[j].FromVersion<=_paramVersion && (VectPar[j].ToVersion< 0 || VectPar[j].ToVersion>=_paramVersion))  
 		fileStream << '\t' << VectPar[j].ColumnTitle;
     fileStream << endl;
-    float dur = (float)SonogramWidth*MsPerX/1000;
-    float sr = (float)_soundFileInfo.samplerate*TimeExpansion;
+    float dur = (double)SonogramWidth*MsPerX/1000.0d;
+    float sr = (double)_soundFileInfo.samplerate*TimeExpansion;
     for(int i=0;i<_callsNumber;i++)
     {
         float **callArray = _paramsArray[i];
@@ -3406,7 +3371,7 @@ void DetecTreatment::saveParameters(const QString& wavFile)
         for(int j=0;j<_numberCallParameters;j++)
         {
 			if(VectPar[j].FromVersion<=_paramVersion && (VectPar[j].ToVersion< 0 || VectPar[j].ToVersion>=_paramVersion))  
-			fileStream << '\t' <<  callArray[VectPar[j].ArrayNumber][VectPar[j].ParameterNumber];
+            fileStream << '\t' <<  (callArray[VectPar[j].ArrayNumber][VectPar[j].ParameterNumber]+epsilon);
         }
         fileStream << endl;
     }
@@ -3418,7 +3383,6 @@ void DetecTreatment::saveCompressedParameters(const QString& wavFile)
 {
     QString txtFilePath = _txtPath+"/"+wavFile.left(wavFile.length()-3)+ _resultSuffix;
     QString compressedParametersPath = _txtPath+"/"+wavFile.left(wavFile.length()-3) + _resultCompressedSuffix;
-    if(_detec->IDebug) _detec->LogStream << "compressedParametersPath = " << compressedParametersPath << endl;
     if(QFile::exists(compressedParametersPath)) QFile::remove(compressedParametersPath);
     int resu;
     if(LINWIN==1)
@@ -3436,7 +3400,6 @@ void DetecTreatment::saveCompressedParameters(const QString& wavFile)
         arguments << txtFilePath;
         resu = QProcess::execute(program,arguments);
     }
-    if(_detec->IDebug) _detec->LogStream << "resu = " << resu << endl;
 }
 
 

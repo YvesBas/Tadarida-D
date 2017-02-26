@@ -72,6 +72,9 @@ bool Detec::initializeDetec()
     _logFile.setFileName(logFilePath);
     _logFile.open(QIODevice::WriteOnly | QIODevice::Text);
     LogStream.setDevice(&_logFile);
+    LogStream.setRealNumberNotation(QTextStream::FixedNotation);
+    LogStream.setRealNumberPrecision(22);
+
     LogStream << "Lancement Detec" <<_threadSuffixe << " : " << QDateTime::currentDateTime().toString("hh:mm:ss:zzz") << endl;
     QString errorFilePath(logDirPath + QString("/error")+_threadSuffixe+".log");
     _errorFile.setFileName(errorFilePath);

@@ -103,17 +103,17 @@ public:
     float                                                                *EnergyColumAverage;
     double		                                                        EnergyMin;
     double			                                                    EnergyMax;
-    float                                                                 EnergyShapeThreshold;
-    float                                                                 EnergyStopThreshold;
+    double                                                              EnergyShapeThreshold;
+    double                                                              EnergyStopThreshold;
     bool                                                                 *FlagGoodCol;
     bool                                                                 *FlagGoodColInitial;
     int			                                                        FftHeightHalf;
     int                                                                    *Inflexion1;
     int                                                                    *Inflexion3;
-    float                                                                 KhzPerY;
+    double                                                                 KhzPerY;
     int                                                                    LimY;
     QVector< QPoint >                                       MasterPoints;
-    float                                                                 MsPerX;
+    double                                                                 MsPerX;
     int                                                                    NError;
     char**                                                              PointFlagsArray;
     qint16 **                                                         SonogramArray;
@@ -137,12 +137,12 @@ private:
     void                                                                 saveCompressedParameters(const QString&);
     void                                                                 shapesDetects();
     void                                                                 sortWaves();
-    void                                                                 sortFloatArray(float *,int);
+    void                                                                 sortDoubleArray(double *,int);
     void                                                                 sortIntArrays(int *,int,int *);
 
     float *                                                               _averagePerX;
     QDir                                                                _baseDayDir;
-    float                                                                 _callEnergyMax ;
+    double                                                               _callEnergyMax ;
     int                                                                    _callEnergyMaxIndex;
     QVector<QPoint>                                          _callMasterRidge;
     QVector<QPoint>                                          _callNorthRidge;
@@ -156,7 +156,7 @@ private:
     char *                                                              _charTabX;
     char *                                                              _charTabYX;
     char *                                                              _charYEmaxPerX;
-    float  *                                                             _coeff;
+    double  *                                                             _coeff;
     fftwf_complex*                                               _complexInput;
     bool                                                                _desactiveCorrectNoise;
     int                                                                    _compressedVersion;

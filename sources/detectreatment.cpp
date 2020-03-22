@@ -175,7 +175,12 @@ void DetecTreatment::SetGlobalParameters(int modeFreq,int timeExpansionLeft,int 
     _paramVersion = parVer;
     //
     if(_modeFreq==1) _freqCallMin = 8.0f;
-   else _freqCallMin=0.8f;
+   else
+    {
+        _freqCallMin=0.8f;
+        _resultSuffix = "ta2";
+        _resultCompressedSuffix = "tac2";
+    }
     _desactiveCorrectNoise = desactiveCorrectNoise;
 }
 
@@ -1189,8 +1194,6 @@ void DetecTreatment::detectsParameter2()
     float *oParam;
     float *oParamCrete[NCRETES];
     double epsilon = 0.0001d;
-    //
-    //if(_detec->IDebug) _detec->_logText << "dp2-1" << endl ;
     int nbcris = CallsArray.size();
     if(nbcris< 1 || _maxCallWidth < 1 || _maxCallHeight < 1) return;
     int maxlarhau = _maxCallWidth;
@@ -1204,7 +1207,6 @@ void DetecTreatment::detectsParameter2()
         //if(_detec->IDebug) _detec->_logText << endl << "-3-icri=" << icri << endl ; //+++
         oParam = _paramsArray[icri][SH];
         for(int j=0;j<NCRETES;j++) oParamCrete[j] = _paramsArray[icri][j+1];
-        //if(_detec->IDebug) _detec->_logText << "-4" << endl;  //+++
         QVector<QPoint> unemat = CallsArray.at(icri);
         int tailleforme = unemat.size(); // The number of vectors of each call
         int xmin = SonogramWidth-1;
